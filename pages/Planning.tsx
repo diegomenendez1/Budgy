@@ -1,0 +1,244 @@
+import React, { useState, useEffect } from 'react';
+import { useFinance } from '../context/FinanceContext';
+import { TransactionType, RecurringItem } from '../types';
+import Card from '../components/Card';
+import { 
+  Trash2, 
+  Edit2, 
+  Plus, 
+  CheckCircle2, 
+  X,
+  TrendingUp,
+  TrendingDown,
+  PiggyBank
+} from 'lucide-react';
+
+const Planning: React.FC = () => {
+  const { 
+    recurringItems, 
+    addRecurringItem, 
+    deleteRecurringItem, 
+    savingsGoal, 
+    setSavingsGoal 
+  } = useFinance();
+
+  const [localSavings, setLocalSavings] = useState(savingsGoal.toString());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<TransactionType>(TransactionType.INCOME);
+  const [editingItem, setEditingItem] = useState<RecurringItem | null>(null);
+  const [desc, setDesc] = useState('');
+  const [amount, setAmount] = useState('');
+
+  useEffect(() => {
+    setLocalSavings(savingsGoal.toString());
+  }, [savingsGoal]);
+
+  const incomes = recurringItems.filter(i => i.type === TransactionType.INCOME);
+  const expenses = recurringItems.filter(i => i.type === TransactionType.EXPENSE);
+  const totalFixedIncome = incomes.reduce((a, c) => a + c.amount, 0);
+  const totalFixedExpenses = expenses.reduce((a, c) => a + c.amount, 0);
+  const currentSavingsValue = parseFloat(localSavings) || 0;
+  const freeMoney = totalFixedIncome - totalFixedExpenses - currentSavingsValue;
+
+  const handleSavingsBlur = () => {
+    const val = parseFloat(localSavings);
+    if (!isNaN(val)) setSavingsGoal(val);
+    else setLocalSavings(savingsGoal.toString());
+  };
+
+  const handleApplyBudget = () => {
+    handleSavingsBlur();
+    // Visual feedback could be added here
+  };
+
+  const openModal = (type: TransactionType, item?: RecurringItem) => {
+    setModalType(type);
+    if (item) {
+      setEditingItem(item);
+      setDesc(item.description);
+      setAmount(item.amount.toString());
+    } else {
+      setEditingItem(null);
+      setDesc('');
+      setAmount('');
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!desc || !amount) return;
+    const val = parseFloat(amount);
+    if (isNaN(val)) return;
+
+    if (editingItem) deleteRecurringItem(editingItem.id);
+    
+    addRecurringItem({
+      description: desc,
+      amount: val,
+      type: modalType,
+    });
+    setIsModalOpen(false);
+  };
+
+  return (
+    <div className="animate-in pt-2">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Planificación</h1>
+        <p className="text-gray-500 text-sm font-medium">Diseña tu mes ideal</p>
+      </header>
+
+      {/* 1. Dashboard Math Panel */}
+      <Card noPadding className="bg-gray-900 text-white overflow-visible mb-8 shadow-xl shadow-gray-900/10">
+        <div className="p-6 pb-4">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Resultado Final</p>
+                    <h2 className={`text-4xl font-bold tracking-tight ${freeMoney < 0 ? 'text-red-400' : 'text-white'}`}>
+                    ${freeMoney.toLocaleString()}
+                    </h2>
+                    <p className="text-gray-500 text-xs font-medium mt-1">Disponible para gastar (Variable)</p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+                    <CheckCircle2 className={freeMoney < 0 ? 'text-red-400' : 'text-green-400'} size={24} />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-2">
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                    <div className="flex items-center gap-2 mb-1">
+                        <TrendingUp size={14} className="text-green-400"/>
+                        <span className="text-xs text-gray-300 font-medium">Ingresos</span>
+                    </div>
+                    <span className="text-lg font-bold text-white">+${totalFixedIncome.toLocaleString()}</span>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                    <div className="flex items-center gap-2 mb-1">
+                        <TrendingDown size={14} className="text-red-400"/>
+                        <span className="text-xs text-gray-300 font-medium">Fijos</span>
+                    </div>
+                    <span className="text-lg font-bold text-white">-${totalFixedExpenses.toLocaleString()}</span>
+                </div>
+            </div>
+
+             {/* Savings Input inside dark card */}
+             <div className="bg-blue-600/20 rounded-2xl p-3 border border-blue-500/30 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <PiggyBank size={16} className="text-blue-400"/>
+                    <span className="text-xs text-blue-100 font-bold">Meta Ahorro</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <span className="text-blue-300 text-sm">$</span>
+                    <input 
+                        type="number" 
+                        value={localSavings}
+                        onChange={(e) => setLocalSavings(e.target.value)}
+                        onBlur={handleSavingsBlur}
+                        className="w-20 text-right font-bold text-white bg-transparent focus:outline-none focus:border-b border-blue-400"
+                    />
+                </div>
+            </div>
+        </div>
+      </Card>
+
+      {/* 2. Lists */}
+      <div className="space-y-8">
+        <div>
+          <div className="flex justify-between items-end mb-3 px-2">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Ingresos Fijos</h3>
+            <button onClick={() => openModal(TransactionType.INCOME)} className="text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <Plus size={12}/> Agregar
+            </button>
+          </div>
+          <div className="space-y-3">
+            {incomes.map(item => (
+              <div key={item.id} onClick={() => openModal(TransactionType.INCOME, item)} className="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer">
+                <div>
+                  <p className="font-bold text-gray-900">{item.description}</p>
+                </div>
+                <span className="font-bold text-green-600">+${item.amount.toLocaleString()}</span>
+              </div>
+            ))}
+            {incomes.length === 0 && <p className="text-center text-gray-400 text-xs py-4">Sin ingresos registrados</p>}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-end mb-3 px-2">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Gastos Fijos</h3>
+            <button onClick={() => openModal(TransactionType.EXPENSE)} className="text-red-600 bg-red-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <Plus size={12}/> Agregar
+            </button>
+          </div>
+          <div className="space-y-3">
+            {expenses.map(item => (
+              <div key={item.id} onClick={() => openModal(TransactionType.EXPENSE, item)} className="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer">
+                <div>
+                  <p className="font-bold text-gray-900">{item.description}</p>
+                </div>
+                <span className="font-bold text-gray-900">${item.amount.toLocaleString()}</span>
+              </div>
+            ))}
+            {expenses.length === 0 && <p className="text-center text-gray-400 text-xs py-4">Sin gastos fijos registrados</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={() => setIsModalOpen(false)} />
+            <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">
+                        {editingItem ? 'Editar' : 'Nuevo'} {modalType === TransactionType.INCOME ? 'Ingreso' : 'Gasto'}
+                    </h3>
+                    <button onClick={() => setIsModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <form onSubmit={handleSaveItem} className="space-y-5">
+                    <input 
+                        type="text" 
+                        value={desc}
+                        onChange={e => setDesc(e.target.value)}
+                        placeholder="Descripción (ej. Netflix)"
+                        className="w-full p-4 bg-gray-50 rounded-2xl font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-black/5"
+                        autoFocus
+                    />
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                        <input 
+                            type="number" 
+                            value={amount}
+                            onChange={e => setAmount(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full p-4 pl-8 bg-gray-50 rounded-2xl font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black/5"
+                        />
+                    </div>
+                    <button 
+                        type="submit" 
+                        className={`w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg active:scale-95 transition-transform 
+                        ${modalType === TransactionType.INCOME ? 'bg-green-600 shadow-green-200' : 'bg-red-600 shadow-red-200'}`}
+                    >
+                        Guardar
+                    </button>
+                    {editingItem && (
+                        <button 
+                            type="button"
+                            onClick={() => { deleteRecurringItem(editingItem.id); setIsModalOpen(false); }}
+                            className="w-full py-3 text-red-500 font-semibold text-sm"
+                        >
+                            Eliminar Elemento
+                        </button>
+                    )}
+                </form>
+            </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Planning;
