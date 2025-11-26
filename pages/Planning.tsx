@@ -84,98 +84,116 @@ const Planning: React.FC = () => {
       </header>
 
       {/* 1. Dashboard Math Panel */}
-      <Card noPadding className="bg-gray-900 text-white overflow-visible mb-8 shadow-xl shadow-gray-900/10">
-        <div className="p-6 pb-4">
+      <div className="bg-gray-900 rounded-3xl p-6 text-white shadow-xl shadow-gray-900/10 mb-8 relative overflow-hidden">
+        {/* Background accent to match Dashboard style */}
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 rounded-full blur-[50px] opacity-20"></div>
+
+        <div className="relative z-10 pb-2">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Resultado Final</p>
                     <h2 className={`text-4xl font-bold tracking-tight ${freeMoney < 0 ? 'text-red-400' : 'text-white'}`}>
                     ${freeMoney.toLocaleString()}
                     </h2>
-                    <p className="text-gray-500 text-xs font-medium mt-1">Disponible para gastar (Variable)</p>
+                    <p className="text-gray-400 text-xs font-medium mt-1">Disponible para gastar (Variable)</p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10 backdrop-blur-sm">
                     <CheckCircle2 className={freeMoney < 0 ? 'text-red-400' : 'text-green-400'} size={24} />
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp size={14} className="text-green-400"/>
-                        <span className="text-xs text-gray-300 font-medium">Ingresos</span>
+                        <div className="bg-green-500/20 p-1 rounded-full">
+                           <TrendingUp size={12} className="text-green-400"/>
+                        </div>
+                        <span className="text-xs text-white/90 font-bold">Ingresos</span>
                     </div>
                     <span className="text-lg font-bold text-white">+${totalFixedIncome.toLocaleString()}</span>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-1">
-                        <TrendingDown size={14} className="text-red-400"/>
-                        <span className="text-xs text-gray-300 font-medium">Fijos</span>
+                        <div className="bg-red-500/20 p-1 rounded-full">
+                           <TrendingDown size={12} className="text-red-400"/>
+                        </div>
+                        <span className="text-xs text-white/90 font-bold">Fijos</span>
                     </div>
                     <span className="text-lg font-bold text-white">-${totalFixedExpenses.toLocaleString()}</span>
                 </div>
             </div>
 
              {/* Savings Input inside dark card */}
-             <div className="bg-blue-600/20 rounded-2xl p-3 border border-blue-500/30 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <PiggyBank size={16} className="text-blue-400"/>
-                    <span className="text-xs text-blue-100 font-bold">Meta Ahorro</span>
+             <div className="bg-blue-600/20 rounded-2xl p-4 border border-blue-500/30 flex items-center justify-between backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="bg-blue-500/20 p-1.5 rounded-lg">
+                        <PiggyBank size={18} className="text-blue-300"/>
+                    </div>
+                    <span className="text-sm text-white font-bold tracking-wide">Meta Ahorro</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <span className="text-blue-300 text-sm">$</span>
+                <div className="flex items-center gap-1 bg-black/20 px-3 py-1.5 rounded-xl border border-white/5">
+                    <span className="text-blue-300 text-sm font-bold">$</span>
                     <input 
                         type="number" 
                         value={localSavings}
                         onChange={(e) => setLocalSavings(e.target.value)}
                         onBlur={handleSavingsBlur}
-                        className="w-24 text-right font-bold text-white bg-transparent focus:outline-none focus:border-b border-blue-400"
+                        className="w-20 text-right font-bold text-white bg-transparent focus:outline-none placeholder-white/30"
+                        placeholder="0"
                         inputMode="decimal"
                     />
                 </div>
             </div>
         </div>
-      </Card>
+      </div>
 
       {/* 2. Lists */}
       <div className="space-y-8">
         <div>
           <div className="flex justify-between items-end mb-3 px-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Ingresos Fijos</h3>
-            <button onClick={() => openModal(TransactionType.INCOME)} className="text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                <Plus size={12}/> Agregar
+            <h3 className="text-xs font-extrabold text-gray-700 uppercase tracking-widest">Ingresos Fijos</h3>
+            <button onClick={() => openModal(TransactionType.INCOME)} className="text-green-700 bg-green-100 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 hover:bg-green-200 transition-colors">
+                <Plus size={12} strokeWidth={3}/> Agregar
             </button>
           </div>
           <div className="space-y-3">
             {incomes.map(item => (
-              <div key={item.id} onClick={() => openModal(TransactionType.INCOME, item)} className="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer">
+              <div key={item.id} onClick={() => openModal(TransactionType.INCOME, item)} className="bg-white p-4 rounded-3xl border border-gray-200 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer hover:border-green-200 group">
                 <div>
-                  <p className="font-bold text-gray-900">{item.description}</p>
+                  <p className="font-bold text-gray-900 group-hover:text-green-800 transition-colors">{item.description}</p>
                 </div>
-                <span className="font-bold text-green-600">+${item.amount.toLocaleString()}</span>
+                <span className="font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">+${item.amount.toLocaleString()}</span>
               </div>
             ))}
-            {incomes.length === 0 && <p className="text-center text-gray-400 text-xs py-4">Sin ingresos registrados</p>}
+            {incomes.length === 0 && (
+                <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
+                    <p className="text-gray-400 text-xs font-bold">Sin ingresos registrados</p>
+                </div>
+            )}
           </div>
         </div>
 
         <div>
           <div className="flex justify-between items-end mb-3 px-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Gastos Fijos</h3>
-            <button onClick={() => openModal(TransactionType.EXPENSE)} className="text-red-600 bg-red-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                <Plus size={12}/> Agregar
+            <h3 className="text-xs font-extrabold text-gray-700 uppercase tracking-widest">Gastos Fijos</h3>
+            <button onClick={() => openModal(TransactionType.EXPENSE)} className="text-red-700 bg-red-100 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 hover:bg-red-200 transition-colors">
+                <Plus size={12} strokeWidth={3}/> Agregar
             </button>
           </div>
           <div className="space-y-3">
             {expenses.map(item => (
-              <div key={item.id} onClick={() => openModal(TransactionType.EXPENSE, item)} className="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer">
+              <div key={item.id} onClick={() => openModal(TransactionType.EXPENSE, item)} className="bg-white p-4 rounded-3xl border border-gray-200 flex justify-between items-center shadow-sm active:scale-[0.99] transition-transform cursor-pointer hover:border-red-200 group">
                 <div>
-                  <p className="font-bold text-gray-900">{item.description}</p>
+                  <p className="font-bold text-gray-900 group-hover:text-red-800 transition-colors">{item.description}</p>
                 </div>
-                <span className="font-bold text-gray-900">${item.amount.toLocaleString()}</span>
+                <span className="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">${item.amount.toLocaleString()}</span>
               </div>
             ))}
-            {expenses.length === 0 && <p className="text-center text-gray-400 text-xs py-4">Sin gastos fijos registrados</p>}
+            {expenses.length === 0 && (
+                <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
+                    <p className="text-gray-400 text-xs font-bold">Sin gastos fijos registrados</p>
+                </div>
+            )}
           </div>
         </div>
       </div>
