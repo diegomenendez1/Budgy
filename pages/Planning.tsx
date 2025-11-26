@@ -18,11 +18,11 @@ const Planning: React.FC = () => {
     recurringItems, 
     addRecurringItem, 
     deleteRecurringItem, 
-    savingsGoal, 
+    currentSavingsGoal, 
     setSavingsGoal 
   } = useFinance();
 
-  const [localSavings, setLocalSavings] = useState(savingsGoal.toString());
+  const [localSavings, setLocalSavings] = useState(currentSavingsGoal.toString());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<TransactionType>(TransactionType.INCOME);
   const [editingItem, setEditingItem] = useState<RecurringItem | null>(null);
@@ -30,8 +30,8 @@ const Planning: React.FC = () => {
   const [amount, setAmount] = useState('');
 
   useEffect(() => {
-    setLocalSavings(savingsGoal.toString());
-  }, [savingsGoal]);
+    setLocalSavings(currentSavingsGoal.toString());
+  }, [currentSavingsGoal]);
 
   const incomes = recurringItems.filter(i => i.type === TransactionType.INCOME);
   const expenses = recurringItems.filter(i => i.type === TransactionType.EXPENSE);
@@ -43,12 +43,7 @@ const Planning: React.FC = () => {
   const handleSavingsBlur = () => {
     const val = parseFloat(localSavings);
     if (!isNaN(val)) setSavingsGoal(val);
-    else setLocalSavings(savingsGoal.toString());
-  };
-
-  const handleApplyBudget = () => {
-    handleSavingsBlur();
-    // Visual feedback could be added here
+    else setLocalSavings(currentSavingsGoal.toString());
   };
 
   const openModal = (type: TransactionType, item?: RecurringItem) => {
@@ -134,7 +129,8 @@ const Planning: React.FC = () => {
                         value={localSavings}
                         onChange={(e) => setLocalSavings(e.target.value)}
                         onBlur={handleSavingsBlur}
-                        className="w-20 text-right font-bold text-white bg-transparent focus:outline-none focus:border-b border-blue-400"
+                        className="w-24 text-right font-bold text-white bg-transparent focus:outline-none focus:border-b border-blue-400"
+                        inputMode="decimal"
                     />
                 </div>
             </div>
@@ -186,7 +182,7 @@ const Planning: React.FC = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={() => setIsModalOpen(false)} />
             <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4">
                 <div className="flex justify-between items-center mb-6">
@@ -215,6 +211,7 @@ const Planning: React.FC = () => {
                             onChange={e => setAmount(e.target.value)}
                             placeholder="0.00"
                             className="w-full p-4 pl-8 bg-gray-50 rounded-2xl font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black/5"
+                            inputMode="decimal"
                         />
                     </div>
                     <button 

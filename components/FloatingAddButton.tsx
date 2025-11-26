@@ -20,7 +20,7 @@ const FloatingAddButton: React.FC = () => {
     if (!amount) return; // Solo validamos que haya monto
     
     addTransaction({
-      description: desc,
+      description: desc || category, // Fallback description
       amount: parseFloat(amount),
       category: category,
       date: new Date().toISOString(),
@@ -38,18 +38,18 @@ const FloatingAddButton: React.FC = () => {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 bg-black text-white p-4 rounded-full shadow-xl shadow-black/20 active:scale-95 transition-transform z-40 hover:bg-gray-800 flex items-center justify-center"
+        className="fixed bottom-24 right-6 bg-black text-white p-4 rounded-full shadow-xl shadow-black/20 active:scale-95 transition-transform z-[60] hover:bg-gray-800 flex items-center justify-center"
         aria-label="Agregar Gasto"
       >
         <Plus size={28} strokeWidth={2.5} />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[60] flex items-end sm:items-center justify-center backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center backdrop-blur-sm animate-fade-in">
           {/* Overlay click to close */}
           <div className="absolute inset-0" onClick={() => setIsOpen(false)}></div>
           
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-safe sm:pb-6 shadow-2xl relative z-10">
+          <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-900">Nuevo Gasto</h3>
               <button 
@@ -72,6 +72,7 @@ const FloatingAddButton: React.FC = () => {
                     className="w-full text-4xl font-bold text-gray-900 border-b-2 border-gray-100 focus:border-black focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300"
                     placeholder="0"
                     autoFocus
+                    inputMode="decimal"
                   />
                 </div>
               </div>

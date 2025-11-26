@@ -4,24 +4,27 @@ import Card from '../components/Card';
 import { 
   TrendingUp, 
   TrendingDown, 
-  PieChart as PieIcon, 
-  Target, 
-  ArrowRight,
-  DollarSign,
   Activity,
-  CalendarClock
+  CalendarClock,
+  Lightbulb,
+  AlertOctagon,
+  Award,
+  Zap,
+  Target,
+  Layers,
+  CalendarCheck
 } from 'lucide-react';
 import { 
   PieChart, 
   Pie, 
   Cell, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
 } from 'recharts';
 import { TransactionType } from '../types';
 
@@ -30,43 +33,56 @@ const COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5856D6'
 const Insights: React.FC = () => {
   const { 
     transactions, 
+    activeCycle,
+    cycleMetrics,
     totalDisposableIncome,
-    cycleStartDate,
-    savingsGoal,
-    spentThisCycle,
-    currentBalance,
-    cycleHistory
+    weeklyBreakdown,
+    totalFixedExpenses,
+    totalFixedIncome
   } = useFinance();
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // --- 1. Cálculos de Tiempo y Presupuesto ---
-  const { daysPassed, daysTotal, daysLeft, progressPercentage } = useMemo(() => {
-    const start = new Date(cycleStartDate);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - start.getTime());
-    const daysPassed = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-    const daysTotal = 30; // Ciclo estándar de 30 días
-    const daysLeft = Math.max(0, daysTotal - daysPassed);
-    const progressPercentage = (daysPassed / daysTotal) * 100;
-    return { daysPassed, daysTotal, daysLeft, progressPercentage };
-  }, [cycleStartDate]);
+  // Destructure metrics from the robust context calculation
+  const {
+      daysPassed,
+      progressPercentage,
+      spentThisCycle,
+      spentPace,
+      idealDailyBudget,
+      remainingBudget,
+      currentSurplus
+  } = cycleMetrics;
 
-  // --- 2. Métricas KPI ---
-  const effectiveBudget = totalDisposableIncome - savingsGoal;
+  // --- 1. Projections and Velocity ---
+  // Effective Budget = Total Available for Spending
+  const effectiveBudget = activeCycle ? activeCycle.initialBudget : 0;
+  
+  // Burn Rate: % of budget spent
   const burnRate = effectiveBudget > 0 ? (spentThisCycle / effectiveBudget) * 100 : 0;
   
-  // Velocidad de gasto: Relación entre % de presupuesto gastado vs % de tiempo transcurrido
-  // > 1.0 significa que gastas más rápido que el tiempo
+  // Velocity: Ratio of % Spend vs % Time
   const spendingVelocity = progressPercentage > 0 ? burnRate / progressPercentage : 0;
   
   const dailyAverage = daysPassed > 0 ? spentThisCycle / daysPassed : 0;
-  const projectedSpend = dailyAverage * 30;
+  const projectedSpend = dailyAverage * (cycleMetrics.daysTotal || 30);
   const projectedBalance = effectiveBudget - projectedSpend;
 
-  // --- 3. Datos por Categoría ---
+  // --- 2. Data by Category (Filtered by Active Cycle) ---
   const categoryData = useMemo(() => {
-    const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
+    if (!activeCycle) return [];
+    
+    // Use the same filter logic as in context or refactor context to expose it
+    const start = new Date(activeCycle.startDate);
+    const end = new Date(activeCycle.endDate);
+    start.setHours(0,0,0,0);
+    end.setHours(23,59,59,999);
+
+    const expenses = transactions.filter(t => {
+         const d = new Date(t.date);
+         return d >= start && d <= end && t.type === TransactionType.EXPENSE;
+    });
+
     const grouped: Record<string, number> = {};
     
     expenses.forEach(t => {
@@ -76,23 +92,173 @@ const Insights: React.FC = () => {
 
     return Object.entries(grouped)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value); // Ordenar mayor a menor
-  }, [transactions]);
+      .sort((a, b) => b.value - a.value);
+  }, [transactions, activeCycle]);
 
-  // --- 4. Top Gastos ---
-  const topTransactions = useMemo(() => {
-    return [...transactions]
-      .filter(t => t.type === TransactionType.EXPENSE)
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-  }, [transactions]);
+  // --- 3. Weekly Data for Chart ---
+  const weeklyChartData = useMemo(() => {
+      return weeklyBreakdown.map(w => ({
+          name: w.label.replace('Semana ', 'S'),
+          spent: w.spent,
+          limit: w.limit,
+          status: w.remaining < 0 ? 'bad' : 'good'
+      }));
+  }, [weeklyBreakdown]);
+
+  // --- 4. Zero Spend Days Calculation ---
+  const zeroSpendDays = useMemo(() => {
+      if (!activeCycle) return 0;
+      const start = new Date(activeCycle.startDate);
+      const today = new Date();
+      let count = 0;
+      
+      // Iterate from start date to today
+      for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+          // Check if any transaction exists on this day
+          const hasTx = transactions.some(t => {
+              const tDate = new Date(t.date);
+              return tDate.toDateString() === d.toDateString() && t.type === TransactionType.EXPENSE;
+          });
+          
+          const isToday = d.toDateString() === new Date().toDateString();
+          // Don't count today until it's effectively over
+          if (!hasTx && !isToday) { 
+              count++;
+          }
+      }
+      return count;
+  }, [activeCycle, transactions]);
+
+  // --- 5. Financial Structure Analysis ---
+  const totalIncome = totalFixedIncome; // Base
+  const fixedRatio = totalIncome > 0 ? (totalFixedExpenses / totalIncome) * 100 : 0;
+  
+  // --- 6. Coach Logic ---
+  const coachInsight = useMemo(() => {
+    if (!activeCycle) return {
+        theme: 'info', icon: Lightbulb, title: 'Inicia un Ciclo', message: 'Configura un ciclo en Presupuesto para activar el coach.', action: 'Ir a pestaña Presupuesto'
+    };
+
+    const mainCategory = categoryData[0] ? categoryData[0].name : 'gastos varios';
+    
+    // Danger: Projection negative
+    if (projectedBalance < 0) {
+      return {
+        theme: 'danger',
+        icon: AlertOctagon,
+        title: 'Alerta de Déficit',
+        message: `Estás gastando por encima de tus posibilidades. Si sigues así, terminarás el ciclo debiendo $${Math.abs(Math.round(projectedBalance)).toLocaleString()}.`,
+        action: `Tu mayor fuga es ${mainCategory}. Intenta no gastar nada en esta categoría por los próximos 3 días.`
+      };
+    }
+
+    // Warning: High Velocity
+    if (spendingVelocity > 1.15) {
+      return {
+        theme: 'warning',
+        icon: Zap,
+        title: 'Desacelera un poco',
+        message: 'Tienes dinero, pero lo estás gastando muy rápido para la altura del mes en la que estamos.',
+        action: 'Prueba un "día cero gastos" mañana para equilibrar tu curva de consumo.'
+      };
+    }
+
+    // Info: Low Savings Rate (Contextual)
+    const realTotalIncome = effectiveBudget + (activeCycle.savingsGoal || 0);
+    const savingsRate = realTotalIncome > 0 ? ((activeCycle.savingsGoal || 0) / realTotalIncome) * 100 : 0;
+    
+    if (savingsRate < 10 && effectiveBudget > 0) {
+      return {
+        theme: 'info',
+        icon: Lightbulb,
+        title: 'Ritmo Saludable',
+        message: 'Tienes tus gastos bajo control total. Es un excelente momento para ser más ambicioso.',
+        action: 'Podrías aumentar tu meta de ahorro un 5% para el próximo ciclo sin afectar tu estilo de vida.'
+      };
+    }
+
+    // Success
+    return {
+      theme: 'success',
+      icon: Award,
+      title: '¡Gestión Maestra!',
+      message: 'Estás manejando tus finanzas como un profesional. Tienes superávit proyectado y buen ahorro.',
+      action: 'Considera usar el excedente proyectado para una inversión a largo plazo o un gusto libre de culpa.'
+    };
+  }, [projectedBalance, spendingVelocity, activeCycle, categoryData, effectiveBudget]);
+
+  const getCoachStyles = (theme: string) => {
+    switch (theme) {
+      case 'danger': return 'bg-red-500 text-white shadow-red-500/30';
+      case 'warning': return 'bg-orange-500 text-white shadow-orange-500/30';
+      case 'info': return 'bg-blue-600 text-white shadow-blue-500/30';
+      case 'success': return 'bg-green-600 text-white shadow-green-500/30';
+      default: return 'bg-gray-800 text-white';
+    }
+  };
+
+  if (!activeCycle) {
+      return (
+        <div className="pt-10 flex flex-col items-center justify-center text-center opacity-50">
+            <Activity size={48} className="mb-4" />
+            <p>Configura un ciclo primero</p>
+        </div>
+      );
+  }
+
+  // --- Helper: Top Transactions ---
+  const topTransactions = [...transactions]
+    .filter(t => {
+         // Filter by active cycle
+         const start = new Date(activeCycle.startDate);
+         const end = new Date(activeCycle.endDate);
+         start.setHours(0,0,0,0);
+         end.setHours(23,59,59,999);
+         const d = new Date(t.date);
+         return d >= start && d <= end && t.type === TransactionType.EXPENSE;
+    })
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
 
   return (
     <div className="animate-in space-y-6 pt-2">
-      <header className="mb-4">
+      <header className="mb-2">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Análisis Profundo</h1>
-        <p className="text-gray-500 text-sm font-medium">Métricas de rendimiento financiero</p>
+        <p className="text-gray-500 text-sm font-medium">Radiografía de tus finanzas</p>
       </header>
+
+      {/* --- COACH CARD --- */}
+      <div className={`rounded-[28px] p-6 shadow-xl relative overflow-hidden transition-all duration-500 ${getCoachStyles(coachInsight.theme)}`}>
+        {/* Background Decorative Pattern */}
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-black opacity-5 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <coachInsight.icon size={24} className="text-white" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-lg font-bold tracking-tight text-white opacity-95">Coach Financiero</h2>
+          </div>
+          
+          <h3 className="text-2xl font-bold mb-2 text-white leading-tight">
+            {coachInsight.title}
+          </h3>
+          <p className="text-white/90 font-medium leading-snug mb-5 text-[15px]">
+            {coachInsight.message}
+          </p>
+
+          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-md border border-white/10 flex gap-3 items-start">
+            <Lightbulb className="text-yellow-300 shrink-0 mt-0.5" size={18} fill="currentColor" fillOpacity={0.2} />
+            <div>
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">Consejo del día</span>
+              <p className="text-sm font-semibold text-white leading-snug">
+                {coachInsight.action}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* 1. Velocity Cards Grid */}
       <div className="grid grid-cols-2 gap-3">
@@ -110,7 +276,6 @@ const Insights: React.FC = () => {
                     {spendingVelocity > 1.1 ? 'Gastas más rápido que el tiempo' : 'Ritmo saludable y controlado'}
                 </p>
             </div>
-            {/* Chart Background Decoration */}
             <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
                  <TrendingUp size={60} />
             </div>
@@ -133,7 +298,53 @@ const Insights: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Breakdown Pie Chart */}
+      {/* 2. Zero Spend & Financial Structure */}
+      <div className="grid grid-cols-2 gap-3">
+         {/* Zero Spend Days */}
+         <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden">
+             <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1 opacity-70">
+                    <CalendarCheck size={16} className="text-indigo-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-900">Días Cero</span>
+                </div>
+                <span className="text-3xl font-extrabold tracking-tighter text-indigo-600">
+                    {zeroSpendDays}
+                </span>
+                <p className="text-[10px] font-medium mt-1 text-gray-400 leading-tight">
+                    Días sin gastos variables este ciclo
+                </p>
+            </div>
+            <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none text-indigo-600">
+                 <Award size={60} />
+            </div>
+        </div>
+
+        {/* Financial Rigidity */}
+        <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden">
+            <div className="relative z-10 w-full">
+                <div className="flex items-center gap-2 mb-2 opacity-70">
+                    <Layers size={16} className="text-gray-600" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-600">Rigidez</span>
+                </div>
+                
+                <div className="flex items-end gap-1 mb-1">
+                    <span className={`text-2xl font-extrabold tracking-tighter ${fixedRatio > 50 ? 'text-red-500' : 'text-gray-900'}`}>
+                        {Math.round(fixedRatio)}%
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400 mb-1.5">Comprometido</span>
+                </div>
+                
+                <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${fixedRatio > 50 ? 'bg-red-500' : 'bg-gray-900'}`} style={{ width: `${Math.min(fixedRatio, 100)}%` }}></div>
+                </div>
+                <p className="text-[10px] font-medium mt-2 text-gray-400 leading-tight">
+                    De tus ingresos son gastos fijos
+                </p>
+            </div>
+        </div>
+      </div>
+
+      {/* 3. Breakdown Pie Chart */}
       <Card title="Distribución de Gastos" subtitle="¿A dónde va tu dinero?" className="overflow-visible">
         <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="h-48 w-48 relative shrink-0">
@@ -188,7 +399,41 @@ const Insights: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Daily Average vs Limit */}
+      {/* 4. Weekly Rhythm Chart */}
+      <Card title="Ritmo Semanal" subtitle="Gasto vs Límite Sugerido">
+          <div className="h-48 w-full mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }} 
+                        dy={10}
+                    />
+                    <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fill: '#9CA3AF' }} 
+                    />
+                    <Tooltip 
+                        cursor={{ fill: '#F3F4F6', radius: 4 }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Bar dataKey="limit" fill="#F3F4F6" radius={[4, 4, 4, 4]} name="Límite" />
+                    <Bar dataKey="spent" radius={[4, 4, 4, 4]} name="Gastado">
+                        {weeklyChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.spent > entry.limit ? '#EF4444' : '#3B82F6'} />
+                        ))}
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
+          </div>
+      </Card>
+
+      {/* 5. Daily Average vs Limit */}
       <div className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100">
           <div className="flex justify-between items-end mb-4">
               <div>
@@ -219,14 +464,13 @@ const Insights: React.FC = () => {
                       <span className="text-gray-500">${Math.round(effectiveBudget / 30).toLocaleString()} / día</span>
                   </div>
                   <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden relative">
-                      {/* Pattern for limit */}
                       <div className="absolute inset-0 w-full h-full opacity-30 bg-[linear-gradient(45deg,#000_25%,transparent_25%,transparent_50%,#000_50%,#000_75%,transparent_75%,transparent)] bg-[length:10px_10px]"></div>
                   </div>
               </div>
           </div>
       </div>
 
-      {/* 4. Top Expenses List */}
+      {/* 6. Top Expenses List */}
       <Card title="Mayores Gastos" subtitle="Identifica tus fugas" noPadding>
          <div className="divide-y divide-gray-100">
              {topTransactions.map((t) => (
@@ -250,38 +494,6 @@ const Insights: React.FC = () => {
              )}
          </div>
       </Card>
-
-      {/* 5. Historical Performance (Only if data exists) */}
-      {cycleHistory.length > 0 && (
-        <Card title="Historial de Ahorro" subtitle="Rendimiento últimos ciclos">
-             <div className="h-40 w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cycleHistory}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                        <XAxis 
-                            dataKey="endDate" 
-                            tick={{fontSize: 10, fill: '#9CA3AF'}} 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tickFormatter={(v) => new Date(v).toLocaleDateString('es-ES', {month:'short'})}
-                        />
-                        <Tooltip 
-                            cursor={{fill: '#F3F4F6'}}
-                            contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)'}}
-                        />
-                        <Bar 
-                            dataKey="achievedSurplus" 
-                            name="Superávit" 
-                            fill="#10b981" 
-                            radius={[6, 6, 6, 6]} 
-                            barSize={24}
-                        />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </Card>
-      )}
-
     </div>
   );
 };

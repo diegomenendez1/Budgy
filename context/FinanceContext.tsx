@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Transaction, RecurringItem, FinancialContextType, TransactionType, WeeklyStatus, CycleHistoryItem } from '../types';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { Transaction, RecurringItem, FinancialContextType, TransactionType, WeeklyStatus, CycleHistoryItem, Cycle, CycleMetrics } from '../types';
 
 const FinanceContext = createContext<FinancialContextType | undefined>(undefined);
 
@@ -21,24 +21,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [cycleStartDate, setCycleStartDate] = useState<string>(() => {
-    const saved = localStorage.getItem('cycleStartDate');
-    // Default to 1st of current month if not set
-    if (!saved) {
-      const date = new Date();
-      date.setDate(1);
-      return date.toISOString();
-    }
-    return saved;
-  });
-
   const [savingsGoal, setSavingsGoalState] = useState<number>(() => {
     const saved = localStorage.getItem('savingsGoal');
     return saved ? parseFloat(saved) : 0;
   });
 
-  const [cycleHistory, setCycleHistory] = useState<CycleHistoryItem[]>(() => {
-    const saved = localStorage.getItem('cycleHistory');
+  const [cycles, setCycles] = useState<Cycle[]>(() => {
+    const saved = localStorage.getItem('cycles');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -52,16 +41,12 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [recurringItems]);
 
   useEffect(() => {
-    localStorage.setItem('cycleStartDate', cycleStartDate);
-  }, [cycleStartDate]);
-
-  useEffect(() => {
     localStorage.setItem('savingsGoal', savingsGoal.toString());
   }, [savingsGoal]);
 
   useEffect(() => {
-    localStorage.setItem('cycleHistory', JSON.stringify(cycleHistory));
-  }, [cycleHistory]);
+    localStorage.setItem('cycles', JSON.stringify(cycles));
+  }, [cycles]);
 
   // --- Actions ---
   const addTransaction = (t: Omit<Transaction, 'id'>) => {
@@ -82,7 +67,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setRecurringItems(prev => prev.filter(i => i.id !== id));
   };
 
-  // --- Metrics Calculations (Needed for startNewCycle logic) ---
+  const setSavingsGoal = (amount: number) => {
+    setSavingsGoalState(amount);
+  };
+
+  // --- Planning Metrics (Live) ---
   const totalFixedIncome = recurringItems
     .filter(i => i.type === TransactionType.INCOME)
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -91,90 +80,217 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     .filter(i => i.type === TransactionType.EXPENSE)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const totalDisposableIncome = totalFixedIncome - totalFixedExpenses;
+  // This is the "Free Money" available for allocation
+  const totalDisposableIncome = totalFixedIncome - totalFixedExpenses - savingsGoal;
 
-  // Filter Transactions for Current Cycle
-  const cycleStart = new Date(cycleStartDate);
-  const cycleTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date);
-    return tDate >= cycleStart && t.type === TransactionType.EXPENSE;
-  });
+  // --- Active Cycle Logic ---
+  const activeCycle = useMemo(() => cycles.find(c => c.isActive) || null, [cycles]);
 
-  const spentThisCycle = cycleTransactions.reduce((acc, curr) => acc + curr.amount, 0);
-  
-  // Current Balance
-  const currentBalance = totalDisposableIncome - savingsGoal - spentThisCycle;
-
-  // --- Start New Cycle Logic ---
-  const startNewCycle = () => {
-    // 1. Snapshot current cycle performance
-    // Surplus = what's left over + what we planned to save (since 'currentBalance' already deducted savingsGoal)
-    // Actually, simple view: Income - Expense = Actual Savings.
-    // Metric requested: Compare Savings Goal vs Achieved Surplus (Total Leftover).
-    // Achieved Surplus = TotalDisposable - Spent.
-    const achievedSurplus = totalDisposableIncome - spentThisCycle;
-
-    const historyItem: CycleHistoryItem = {
-      id: crypto.randomUUID(),
-      endDate: new Date().toISOString(),
-      savingsGoal: savingsGoal,
-      achievedSurplus: achievedSurplus
-    };
-
-    setCycleHistory(prev => [...prev, historyItem]);
-
-    // 2. Reset date
-    setCycleStartDate(new Date().toISOString());
-  };
-
-  const setSavingsGoal = (amount: number) => {
-    setSavingsGoalState(amount);
-  };
-
-  // --- Weekly Breakdown Logic ---
-  const calculateWeeklyBreakdown = (): WeeklyStatus[] => {
-    const weeks: WeeklyStatus[] = [];
-    const cycleDate = new Date(cycleStartDate);
-    const now = new Date();
+  const activeCycleTransactions = useMemo(() => {
+    if (!activeCycle) return [];
     
-    // Assume a 4-week cycle for simplicity or until next month
-    // Let's generate 4 standard weeks from cycle start
-    const totalBudgetForWeeks = totalDisposableIncome - savingsGoal;
-    const budgetPerWeek = totalBudgetForWeeks / 4;
+    const start = new Date(activeCycle.startDate);
+    const end = new Date(activeCycle.endDate);
+    
+    // Normalize dates for comparison (ignore time)
+    start.setHours(0,0,0,0);
+    end.setHours(23,59,59,999);
 
-    for (let i = 0; i < 4; i++) {
-      const start = new Date(cycleDate);
-      start.setDate(cycleDate.getDate() + (i * 7));
-      
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      end.setHours(23, 59, 59, 999);
+    return transactions.filter(t => {
+      const tDate = new Date(t.date);
+      // Logic: Transaction is in cycle if date is within range
+      return tDate >= start && tDate <= end && t.type === TransactionType.EXPENSE;
+    });
+  }, [activeCycle, transactions]);
 
-      // Filter transactions for this specific week
-      const weekSpent = transactions
-        .filter(t => {
-          const tDate = new Date(t.date);
-          return tDate >= start && tDate <= end && t.type === TransactionType.EXPENSE;
-        })
+  // --- Cycle Metrics Calculation ---
+  const cycleMetrics: CycleMetrics = useMemo(() => {
+    if (!activeCycle) {
+      return {
+        daysPassed: 0, daysTotal: 30, progressPercentage: 0,
+        remainingBudget: 0, spentThisCycle: 0, spentPace: 0,
+        idealDailyBudget: 0, currentSurplus: 0, isOverspending: false,
+        suggestedDailyBudget: null
+      };
+    }
+
+    const now = new Date();
+    const start = new Date(activeCycle.startDate);
+    const end = new Date(activeCycle.endDate);
+    start.setHours(0,0,0,0);
+    end.setHours(23,59,59,999);
+
+    const totalTime = end.getTime() - start.getTime();
+    const daysTotal = Math.ceil(totalTime / (1000 * 3600 * 24)) || 1;
+    
+    const elapsedTime = Math.min(Math.max(0, now.getTime() - start.getTime()), totalTime);
+    const daysPassed = Math.ceil(elapsedTime / (1000 * 3600 * 24)) || 1; // 1-based index
+    
+    const progressPercentage = Math.min(100, (daysPassed / daysTotal) * 100);
+
+    const spentThisCycle = activeCycleTransactions.reduce((acc, t) => acc + t.amount, 0);
+    const spentPace = activeCycleTransactions
+        .filter(t => !t.isExceptional)
         .reduce((acc, t) => acc + t.amount, 0);
 
-      const isCurrent = now >= start && now <= end;
+    // Initial Budget is what was "Free Money" when cycle started
+    const totalAvailable = activeCycle.initialBudget;
+    
+    const remainingBudget = totalAvailable - spentThisCycle;
 
-      weeks.push({
-        weekNumber: i + 1,
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        limit: budgetPerWeek,
-        spent: weekSpent,
-        remaining: budgetPerWeek - weekSpent,
-        isCurrent
-      });
+    // Pace Logic
+    const idealDailyBudget = totalAvailable / daysTotal;
+    const idealSpendToDate = idealDailyBudget * daysPassed;
+    
+    // Surplus
+    const currentSurplus = idealSpendToDate - spentPace;
+    
+    // Overspending if deficit is significant
+    const isOverspending = currentSurplus < 0;
+
+    let suggestedDailyBudget = null;
+    if (isOverspending) {
+      const daysLeft = daysTotal - daysPassed;
+      if (daysLeft > 0) {
+        // Remaining from the 'Pace' budget perspective
+        const remainingForPace = totalAvailable - spentPace; 
+        suggestedDailyBudget = Math.max(0, remainingForPace / daysLeft);
+      }
     }
+
+    return {
+      daysPassed,
+      daysTotal,
+      progressPercentage,
+      remainingBudget,
+      spentThisCycle,
+      spentPace,
+      idealDailyBudget,
+      currentSurplus,
+      isOverspending,
+      suggestedDailyBudget
+    };
+  }, [activeCycle, activeCycleTransactions]);
+
+  // --- Weekly Breakdown Logic (Dynamic Weeks) ---
+  const weeklyBreakdown = useMemo(() => {
+    if (!activeCycle) return [];
+
+    const weeks: WeeklyStatus[] = [];
+    const start = new Date(activeCycle.startDate);
+    start.setHours(0,0,0,0);
+    const cycleEnd = new Date(activeCycle.endDate);
+    cycleEnd.setHours(23,59,59,999);
+    
+    const now = new Date();
+    
+    // Calculate actual total days for daily budget distribution
+    const totalTime = cycleEnd.getTime() - start.getTime();
+    const cycleTotalDays = Math.ceil(totalTime / (1000 * 3600 * 24)) || 1;
+    const totalBudget = activeCycle.initialBudget;
+    const dailyBudget = totalBudget / cycleTotalDays;
+
+    let currentIterDate = new Date(start);
+    let weekNum = 1;
+
+    // Iterate dynamically week by week until we cover the whole cycle
+    while (currentIterDate <= cycleEnd) {
+        const wStart = new Date(currentIterDate);
+        
+        // End of week is start + 6 days (7 days total)
+        const wEnd = new Date(currentIterDate);
+        wEnd.setDate(wStart.getDate() + 6);
+        wEnd.setHours(23,59,59,999);
+
+        // If the calculated week end goes beyond cycle end, clamp it
+        if (wEnd > cycleEnd) {
+            wEnd.setTime(cycleEnd.getTime());
+        }
+
+        const isCurrent = now >= wStart && now <= wEnd;
+
+        // Filter transactions strictly for this date range
+        const weekSpent = activeCycleTransactions
+          .filter(t => {
+            const d = new Date(t.date);
+            return d >= wStart && d <= wEnd;
+          })
+          .reduce((acc, t) => acc + t.amount, 0);
+
+        // Calculate exact days in this week segment (last week might be short)
+        const daysInWeek = Math.ceil((wEnd.getTime() - wStart.getTime()) / (1000 * 3600 * 24));
+        const effectiveDays = Math.max(1, daysInWeek); 
+        
+        const weekLimit = dailyBudget * effectiveDays;
+
+        weeks.push({
+          weekNumber: weekNum,
+          startDate: wStart.toISOString(),
+          endDate: wEnd.toISOString(),
+          limit: weekLimit,
+          spent: weekSpent,
+          remaining: weekLimit - weekSpent,
+          isCurrent,
+          label: `Semana ${weekNum}`
+        });
+
+        // Prepare for next iteration: Start date is day after current wEnd
+        currentIterDate = new Date(wEnd);
+        currentIterDate.setDate(currentIterDate.getDate() + 1);
+        currentIterDate.setHours(0,0,0,0);
+        weekNum++;
+    }
+
     return weeks;
+  }, [activeCycle, activeCycleTransactions]);
+
+  const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
+
+  // --- Create Cycle ---
+  const createCycle = (endDate: Date) => {
+    // 1. Deactivate current cycle
+    const updatedCycles = cycles.map(c => ({ ...c, isActive: false }));
+
+    // 2. Calculate Initial Budget from Planning
+    const initialBudget = totalDisposableIncome; 
+
+    const startDate = new Date();
+    startDate.setHours(0,0,0,0); // Start today 00:00
+
+    // Set end date to end of that day
+    endDate.setHours(23,59,59,999);
+
+    const monthName = endDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    const capitalizedName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+    const newCycle: Cycle = {
+      id: crypto.randomUUID(),
+      name: capitalizedName,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      initialBudget: initialBudget,
+      savingsGoal: savingsGoal,
+      isActive: true
+    };
+
+    setCycles([...updatedCycles, newCycle]);
   };
 
-  const weeklyBreakdown = calculateWeeklyBreakdown();
-  const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
+  const cycleHistory: CycleHistoryItem[] = cycles
+    .filter(c => !c.isActive)
+    .map(c => {
+       const cTransactions = transactions.filter(t => {
+          const d = new Date(t.date);
+          return d >= new Date(c.startDate) && d <= new Date(c.endDate) && t.type === TransactionType.EXPENSE;
+       });
+       const spent = cTransactions.reduce((acc, t) => acc + t.amount, 0);
+       return {
+         id: c.id,
+         endDate: c.endDate,
+         savingsGoal: c.savingsGoal,
+         achievedSurplus: c.initialBudget - spent
+       };
+    });
 
   return (
     <FinanceContext.Provider value={{
@@ -185,14 +301,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       addRecurringItem,
       deleteRecurringItem,
       
+      totalFixedIncome,
+      totalFixedExpenses,
       totalDisposableIncome,
-      currentBalance,
-      spentThisCycle,
-      
-      cycleStartDate,
-      savingsGoal,
+      currentSavingsGoal: savingsGoal,
       setSavingsGoal,
-      startNewCycle,
+      
+      cycles,
+      activeCycle,
+      createCycle,
+      
+      cycleMetrics,
       weeklyBreakdown,
       currentWeekStatus,
       cycleHistory

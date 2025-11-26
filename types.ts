@@ -15,7 +15,7 @@ export interface Transaction {
   type: TransactionType;
   date: string;
   category: string;
-  isExceptional?: boolean; // New: Flag for one-off large expenses
+  isExceptional?: boolean; // Flag for one-off large expenses
 }
 
 export interface RecurringItem {
@@ -33,6 +33,30 @@ export interface WeeklyStatus {
   spent: number;
   remaining: number;
   isCurrent: boolean;
+  label: string; // e.g., "Días 1-7"
+}
+
+export interface Cycle {
+  id: string;
+  name: string; // e.g., "Octubre 2024"
+  startDate: string;
+  endDate: string;
+  initialBudget: number; // Snapshot of "Free Money" at cycle start
+  savingsGoal: number;   // Snapshot of savings goal at cycle start
+  isActive: boolean;
+}
+
+export interface CycleMetrics {
+  daysPassed: number;
+  daysTotal: number;
+  progressPercentage: number;
+  remainingBudget: number;
+  spentThisCycle: number;
+  spentPace: number; // Spend excluding exceptional items
+  idealDailyBudget: number;
+  currentSurplus: number; // + or - based on ideal pace
+  isOverspending: boolean;
+  suggestedDailyBudget: number | null; // If overspending, how much to spend to catch up
 }
 
 export interface CycleHistoryItem {
@@ -50,16 +74,20 @@ export interface FinancialContextType {
   addRecurringItem: (item: Omit<RecurringItem, 'id'>) => void;
   deleteRecurringItem: (id: string) => void;
   
-  // Metrics
-  totalDisposableIncome: number;
-  currentBalance: number;
-  spentThisCycle: number;
-  
-  // Cycle & Savings
-  cycleStartDate: string;
-  savingsGoal: number;
+  // Planning Data (Live)
+  totalFixedIncome: number;
+  totalFixedExpenses: number;
+  totalDisposableIncome: number; // Live "Free Money" calculation
+  currentSavingsGoal: number;
   setSavingsGoal: (amount: number) => void;
-  startNewCycle: () => void;
+
+  // Cycle Management
+  cycles: Cycle[];
+  activeCycle: Cycle | null;
+  createCycle: (endDate: Date) => void;
+  
+  // Active Cycle Metrics
+  cycleMetrics: CycleMetrics;
   weeklyBreakdown: WeeklyStatus[];
   currentWeekStatus: WeeklyStatus | null;
   
