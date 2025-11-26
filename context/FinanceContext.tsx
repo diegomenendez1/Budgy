@@ -9,29 +9,40 @@ export const useFinance = () => {
   return context;
 };
 
+// Helper para leer datos de forma segura. Si falla el parseo, devuelve el valor por defecto
+// y no rompe la aplicación.
+const getSavedData = <T,>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return defaultValue;
+    return JSON.parse(saved);
+  } catch (error) {
+    console.warn(`Error recuperando datos para ${key}, usando valor por defecto.`, error);
+    return defaultValue;
+  }
+};
+
 export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // --- State Persistence ---
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('transactions');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // --- State Persistence (Robust) ---
+  const [transactions, setTransactions] = useState<Transaction[]>(() => 
+    getSavedData<Transaction[]>('transactions', [])
+  );
 
-  const [recurringItems, setRecurringItems] = useState<RecurringItem[]>(() => {
-    const saved = localStorage.getItem('recurringItems');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [recurringItems, setRecurringItems] = useState<RecurringItem[]>(() => 
+    getSavedData<RecurringItem[]>('recurringItems', [])
+  );
 
-  const [savingsGoal, setSavingsGoalState] = useState<number>(() => {
-    const saved = localStorage.getItem('savingsGoal');
-    return saved ? parseFloat(saved) : 0;
-  });
+  const [savingsGoal, setSavingsGoalState] = useState<number>(() => 
+    getSavedData<number>('savingsGoal', 0)
+  );
 
-  const [cycles, setCycles] = useState<Cycle[]>(() => {
-    const saved = localStorage.getItem('cycles');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [cycles, setCycles] = useState<Cycle[]>(() => 
+    getSavedData<Cycle[]>('cycles', [])
+  );
 
-  // --- Effects ---
+  // --- Effects (Auto-save) ---
+  // Estos efectos se ejecutan cada vez que cambian los datos, guardándolos automáticamente.
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
@@ -129,8 +140,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     const progressPercentage = Math.min(100, (daysPassed / daysTotal) * 100);
 
     const spentThisCycle = activeCycleTransactions.reduce((acc, t) => acc + t.amount, 0);
+    
+    // Calculate Pace: Exclude exceptional expenses if they exist
     const spentPace = activeCycleTransactions
-        .filter(t => !t.isExceptional)
+        .filter(t => !t.isExceptional) 
         .reduce((acc, t) => acc + t.amount, 0);
 
     // Initial Budget is what was "Free Money" when cycle started
