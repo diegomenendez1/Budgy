@@ -7,14 +7,15 @@ import {
   RefreshCcw, 
   Edit3, 
   Trash2, 
-  ShoppingBag,
-  Coffee,
-  Car,
-  Home,
-  Zap,
-  MoreHorizontal,
-  X,
-  Calendar as CalendarIcon
+  ShoppingBag, 
+  Coffee, 
+  Car, 
+  Home, 
+  Zap, 
+  MoreHorizontal, 
+  X, 
+  Calendar as CalendarIcon, 
+  DollarSign 
 } from 'lucide-react';
 
 const Budget: React.FC = () => {
@@ -27,7 +28,8 @@ const Budget: React.FC = () => {
     transactions, 
     deleteTransaction,
     currentSavingsGoal,
-    setSavingsGoal
+    setSavingsGoal,
+    totalDisposableIncome
   } = useFinance();
 
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
@@ -37,8 +39,17 @@ const Budget: React.FC = () => {
   // Cycle Modal State
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [initialBudgetInput, setInitialBudgetInput] = useState('');
 
   const currentWeekRef = useRef<HTMLDivElement>(null);
+
+  // Helper to open modal and initialize budget with current planning value
+  const handleOpenCycleModal = () => {
+    // UX Improvement: If value is 0, keep empty to show placeholder. If > 0, show value.
+    const initialValue = totalDisposableIncome > 0 ? totalDisposableIncome.toString() : '';
+    setInitialBudgetInput(initialValue);
+    setIsCycleModalOpen(true);
+  };
 
   // Filter transactions for display
   const displayTransactions = activeCycle ? transactions.filter(t => {
@@ -73,7 +84,18 @@ const Budget: React.FC = () => {
         return;
     }
 
-    createCycle(endDate);
+    // UX Improvement: Treat empty input as 0
+    let budgetAmount = parseFloat(initialBudgetInput);
+    if (initialBudgetInput.trim() === '') {
+        budgetAmount = 0;
+    }
+
+    if (isNaN(budgetAmount)) {
+        alert("Por favor ingresa un monto válido.");
+        return;
+    }
+
+    createCycle(endDate, budgetAmount);
     setIsCycleModalOpen(false);
   };
 
@@ -117,10 +139,10 @@ const Budget: React.FC = () => {
             </div>
             
             <p className="text-gray-500 text-sm mb-6">
-                El ciclo comenzará hoy. Selecciona cuándo quieres que termine (usualmente fin de mes).
+                El ciclo comenzará hoy. Configura cuándo termina y tu presupuesto inicial.
             </p>
 
-            <div className="space-y-4 mb-8">
+            <div className="space-y-6 mb-8">
                 <div>
                     <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Mes de Cierre</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -149,6 +171,26 @@ const Budget: React.FC = () => {
                         ))}
                      </div>
                 </div>
+
+                {/* Initial Budget Input */}
+                <div>
+                    <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Presupuesto Inicial</label>
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <input 
+                            type="number"
+                            value={initialBudgetInput}
+                            onChange={(e) => setInitialBudgetInput(e.target.value)}
+                            onFocus={(e) => e.target.select()} // Auto-select for easy editing
+                            className="w-full bg-gray-50 rounded-2xl p-4 pl-8 text-lg font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-black/10"
+                            placeholder="0"
+                            inputMode="decimal"
+                        />
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 ml-1">
+                        Sugerido según tu Planificación (${totalDisposableIncome.toLocaleString()}). Puedes editarlo si tienes saldo anterior.
+                    </p>
+                </div>
             </div>
 
             <button 
@@ -171,7 +213,7 @@ const Budget: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-900 mb-2">Sin Ciclo Activo</h2>
                 <p className="text-gray-500 text-sm mb-6">Comienza un nuevo ciclo para rastrear tus gastos y metas.</p>
                 <button 
-                  onClick={() => setIsCycleModalOpen(true)}
+                  onClick={handleOpenCycleModal}
                   className="bg-black text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-gray-200 active:scale-95 transition-transform"
                 >
                     Iniciar Nuevo Ciclo
@@ -194,7 +236,7 @@ const Budget: React.FC = () => {
                   {activeCycle?.name}
               </p>
           </div>
-          <button onClick={() => setIsCycleModalOpen(true)} className="p-2 -mr-2 text-gray-300 hover:text-gray-900 transition-colors bg-gray-50 rounded-full">
+          <button onClick={handleOpenCycleModal} className="p-2 -mr-2 text-gray-300 hover:text-gray-900 transition-colors bg-gray-50 rounded-full">
             <RefreshCcw size={16} />
           </button>
         </div>
@@ -298,7 +340,7 @@ const Budget: React.FC = () => {
                  <MoreHorizontal size={32} />
                </div>
                <p className="text-gray-900 font-semibold text-sm">Sin movimientos en este ciclo</p>
-               <button onClick={() => setIsCycleModalOpen(true)} className="text-xs text-blue-500 mt-2 font-bold">
+               <button onClick={handleOpenCycleModal} className="text-xs text-blue-500 mt-2 font-bold">
                    Asegúrate de tener un ciclo activo
                </button>
              </div>

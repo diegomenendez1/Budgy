@@ -260,12 +260,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
 
   // --- Create Cycle ---
-  const createCycle = (endDate: Date) => {
+  const createCycle = (endDate: Date, customInitialBudget: number) => {
     // 1. Deactivate current cycle
     const updatedCycles = cycles.map(c => ({ ...c, isActive: false }));
-
-    // 2. Calculate Initial Budget from Planning
-    const initialBudget = totalDisposableIncome; 
 
     const startDate = new Date();
     startDate.setHours(0,0,0,0); // Start today 00:00
@@ -281,7 +278,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       name: capitalizedName,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      initialBudget: initialBudget,
+      initialBudget: customInitialBudget, // Use passed budget
       savingsGoal: savingsGoal,
       isActive: true
     };

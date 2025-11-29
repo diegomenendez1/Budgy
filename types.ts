@@ -84,7 +84,7 @@ export interface FinancialContextType {
   // Cycle Management
   cycles: Cycle[];
   activeCycle: Cycle | null;
-  createCycle: (endDate: Date) => void;
+  createCycle: (endDate: Date, initialBudget: number) => void;
   
   // Active Cycle Metrics
   cycleMetrics: CycleMetrics;
