@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
-import { Plus, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, AlertTriangle, Check } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType } from '../types';
 
-const categories = ["Comida", "Transporte", "Ocio", "Salud", "Compras", "Otros"];
-
 const FloatingAddButton: React.FC = () => {
-  const { addTransaction } = useFinance();
+  const { addTransaction, categories, addCategory } = useFinance();
   const [isOpen, setIsOpen] = useState(false);
   
   // Form State
   const [amount, setAmount] = useState('');
   const [desc, setDesc] = useState('');
-  const [category, setCategory] = useState(categories[0]);
+  const [category, setCategory] = useState('');
   const [isExceptional, setIsExceptional] = useState(false);
+
+  // New Category State
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  // Set default category when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !category) {
+      setCategory(categories[0]);
+    }
+  }, [categories, category]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +41,17 @@ const FloatingAddButton: React.FC = () => {
     setDesc('');
     setIsExceptional(false);
     setIsOpen(false);
+  };
+
+  const handleAddNewCategory = () => {
+    if (newCategoryName.trim()) {
+      addCategory(newCategoryName);
+      setCategory(newCategoryName.trim()); // Select the new category
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+    } else {
+      setIsAddingCategory(false);
+    }
   };
 
   return (
@@ -101,6 +121,42 @@ const FloatingAddButton: React.FC = () => {
                       {c}
                     </button>
                   ))}
+                  
+                  {/* Button to add new category */}
+                  {isAddingCategory ? (
+                    <div className="flex items-center bg-gray-100 rounded-full px-2 pl-3 py-1">
+                      <input 
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onBlur={handleAddNewCategory}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddNewCategory();
+                          }
+                        }}
+                        className="bg-transparent border-none focus:outline-none text-sm font-bold text-gray-900 w-24"
+                        placeholder="Nueva..."
+                        autoFocus
+                      />
+                      <button 
+                        type="button" 
+                        onMouseDown={handleAddNewCategory} // onMouseDown fires before onBlur
+                        className="bg-black text-white p-1 rounded-full ml-1"
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCategory(true)}
+                      className="px-3 py-2 rounded-full text-sm font-bold bg-gray-100 text-gray-400 hover:bg-gray-200 border border-dashed border-gray-300"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
 

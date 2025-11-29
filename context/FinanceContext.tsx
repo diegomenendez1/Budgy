@@ -9,8 +9,7 @@ export const useFinance = () => {
   return context;
 };
 
-// Helper para leer datos de forma segura. Si falla el parseo, devuelve el valor por defecto
-// y no rompe la aplicación.
+// Helper para leer datos de forma segura. Si falla el parseo, devuelve el valor por defecto.
 const getSavedData = <T,>(key: string, defaultValue: T): T => {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -22,6 +21,17 @@ const getSavedData = <T,>(key: string, defaultValue: T): T => {
     return defaultValue;
   }
 };
+
+// Helper robusto para generar IDs unicos incluso en entornos inseguros (HTTP)
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback para entornos donde crypto no está disponible
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
+const DEFAULT_CATEGORIES = ["Comida", "Transporte", "Ocio", "Salud", "Compras", "Otros"];
 
 export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // --- State Persistence (Robust) ---
@@ -41,8 +51,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     getSavedData<Cycle[]>('cycles', [])
   );
 
+  const [customCategories, setCustomCategories] = useState<string[]>(() => 
+    getSavedData<string[]>('customCategories', [])
+  );
+
   // --- Effects (Auto-save) ---
-  // Estos efectos se ejecutan cada vez que cambian los datos, guardándolos automáticamente.
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
@@ -59,9 +72,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem('cycles', JSON.stringify(cycles));
   }, [cycles]);
 
+  useEffect(() => {
+    localStorage.setItem('customCategories', JSON.stringify(customCategories));
+  }, [customCategories]);
+
   // --- Actions ---
   const addTransaction = (t: Omit<Transaction, 'id'>) => {
-    const newTransaction = { ...t, id: crypto.randomUUID() };
+    const newTransaction = { ...t, id: generateUUID() };
     setTransactions(prev => [newTransaction, ...prev]);
   };
 
@@ -70,7 +87,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addRecurringItem = (item: Omit<RecurringItem, 'id'>) => {
-    const newItem = { ...item, id: crypto.randomUUID() };
+    const newItem = { ...item, id: generateUUID() };
     setRecurringItems(prev => [...prev, newItem]);
   };
 
@@ -80,6 +97,20 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const setSavingsGoal = (amount: number) => {
     setSavingsGoalState(amount);
+  };
+
+  // --- Categories Management ---
+  const categories = useMemo(() => {
+    // Merge defaults with custom, removing duplicates just in case
+    return Array.from(new Set([...DEFAULT_CATEGORIES, ...customCategories]));
+  }, [customCategories]);
+
+  const addCategory = (category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    if (!categories.includes(trimmed)) {
+      setCustomCategories(prev => [...prev, trimmed]);
+    }
   };
 
   // --- Planning Metrics (Live) ---
@@ -274,7 +305,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     const capitalizedName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     const newCycle: Cycle = {
-      id: crypto.randomUUID(),
+      id: generateUUID(), // Usando generador robusto
       name: capitalizedName,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -324,7 +355,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       cycleMetrics,
       weeklyBreakdown,
       currentWeekStatus,
-      cycleHistory
+      cycleHistory,
+      
+      categories,
+      addCategory
     }}>
       {children}
     </FinanceContext.Provider>

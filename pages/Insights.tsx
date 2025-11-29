@@ -12,7 +12,10 @@ import {
   Zap,
   Target,
   Layers,
-  CalendarCheck
+  CalendarCheck,
+  Compass,
+  Anchor,
+  Flag
 } from 'lucide-react';
 import { 
   PieChart, 
@@ -133,59 +136,102 @@ const Insights: React.FC = () => {
   const totalIncome = totalFixedIncome; // Base
   const fixedRatio = totalIncome > 0 ? (totalFixedExpenses / totalIncome) * 100 : 0;
   
-  // --- 6. Coach Logic ---
+  // --- 6. Coach Logic (Advanced Contextual) ---
   const coachInsight = useMemo(() => {
     if (!activeCycle) return {
         theme: 'info', icon: Lightbulb, title: 'Inicia un Ciclo', message: 'Configura un ciclo en Presupuesto para activar el coach.', action: 'Ir a pestaña Presupuesto'
     };
 
     const mainCategory = categoryData[0] ? categoryData[0].name : 'gastos varios';
-    
-    // Danger: Projection negative
-    if (projectedBalance < 0) {
+    const daysLeft = (cycleMetrics.daysTotal || 30) - daysPassed;
+    const isBeginning = progressPercentage < 20;
+    const isEnding = daysLeft <= 5;
+
+    // --- PRIORITY 1: CRITICAL DEFICIT ---
+    if (projectedBalance < 0 && Math.abs(projectedBalance) > (effectiveBudget * 0.1)) {
       return {
         theme: 'danger',
         icon: AlertOctagon,
-        title: 'Alerta de Déficit',
-        message: `Estás gastando por encima de tus posibilidades. Si sigues así, terminarás el ciclo debiendo $${Math.abs(Math.round(projectedBalance)).toLocaleString()}.`,
-        action: `Tu mayor fuga es ${mainCategory}. Intenta no gastar nada en esta categoría por los próximos 3 días.`
+        title: 'Alerta Roja: Déficit',
+        message: `A este ritmo, te faltarán $${Math.abs(Math.round(projectedBalance)).toLocaleString()} para terminar el mes.`,
+        action: `Activa el protocolo de emergencia: Cero gastos en ${mainCategory} por 3 días.`
       };
     }
 
-    // Warning: High Velocity
-    if (spendingVelocity > 1.15) {
+    // --- PRIORITY 2: STRUCTURAL RISK ---
+    if (fixedRatio > 65 && spendingVelocity > 1.0) {
+      return {
+        theme: 'warning',
+        icon: Anchor,
+        title: 'Rigidez Financiera Alta',
+        message: 'Tus gastos fijos consumen gran parte de tus ingresos. Tienes muy poco margen para errores.',
+        action: 'Con gastos fijos altos, tu prioridad #1 debe ser no desviarte ni un dólar en variables.'
+      };
+    }
+
+    // --- PRIORITY 3: TIMING CONTEXT (BEGINNING) ---
+    if (isBeginning && burnRate > 25) {
+       return {
+        theme: 'warning',
+        icon: Compass,
+        title: 'Arranque Falso',
+        message: 'Has quemado más del 25% de tu presupuesto en los primeros días. Esto es peligroso para el resto del mes.',
+        action: 'Divide el dinero restante entre las semanas que faltan y ajusta tu límite diario.'
+      };
+    }
+
+    // --- PRIORITY 4: TIMING CONTEXT (ENDING) ---
+    if (isEnding) {
+        if (currentSurplus > 0) {
+            return {
+                theme: 'success',
+                icon: Flag,
+                title: 'Recta Final Impecable',
+                message: 'Estás aterrizando el mes con saldo a favor. Tienes el control total.',
+                action: '¿Te das un gusto o lo sumas a tus ahorros? Tú decides, te lo has ganado.'
+            };
+        } else if (remainingBudget > 0) {
+             return {
+                theme: 'warning',
+                icon: Target,
+                title: 'Aterrizaje de Precisión',
+                message: 'Quedan pocos días y poco presupuesto. Es momento de precisión quirúrgica.',
+                action: `Tienes $${Math.round(remainingBudget / daysLeft).toLocaleString()} por día. No te pases de eso.`
+            };
+        }
+    }
+
+    // --- PRIORITY 5: VELOCITY CHECKS ---
+    if (spendingVelocity > 1.3) {
       return {
         theme: 'warning',
         icon: Zap,
-        title: 'Desacelera un poco',
-        message: 'Tienes dinero, pero lo estás gastando muy rápido para la altura del mes en la que estamos.',
-        action: 'Prueba un "día cero gastos" mañana para equilibrar tu curva de consumo.'
+        title: 'Ritmo Acelerado',
+        message: 'Estás gastando un 30% más rápido de lo que pasa el tiempo. No es sostenible.',
+        action: `Tu categoría principal es ${mainCategory}. Intenta reducirla a la mitad esta semana.`
       };
     }
 
-    // Info: Low Savings Rate (Contextual)
-    const realTotalIncome = effectiveBudget + (activeCycle.savingsGoal || 0);
-    const savingsRate = realTotalIncome > 0 ? ((activeCycle.savingsGoal || 0) / realTotalIncome) * 100 : 0;
-    
-    if (savingsRate < 10 && effectiveBudget > 0) {
-      return {
-        theme: 'info',
-        icon: Lightbulb,
-        title: 'Ritmo Saludable',
-        message: 'Tienes tus gastos bajo control total. Es un excelente momento para ser más ambicioso.',
-        action: 'Podrías aumentar tu meta de ahorro un 5% para el próximo ciclo sin afectar tu estilo de vida.'
-      };
+    // --- PRIORITY 6: OPTIMIZATION (GOOD SCENARIOS) ---
+    if (zeroSpendDays > 5 && spendingVelocity < 0.9) {
+        return {
+            theme: 'success',
+            icon: Award,
+            title: 'Maestro de la Disciplina',
+            message: `Llevas ${zeroSpendDays} días sin gastos variables. Esa disciplina es la clave de la riqueza.`,
+            action: 'Mantén esta inercia. Tu "Yo del futuro" te lo agradecerá.'
+        };
     }
 
-    // Success
+    // Default Good State
     return {
-      theme: 'success',
-      icon: Award,
-      title: '¡Gestión Maestra!',
-      message: 'Estás manejando tus finanzas como un profesional. Tienes superávit proyectado y buen ahorro.',
-      action: 'Considera usar el excedente proyectado para una inversión a largo plazo o un gusto libre de culpa.'
+      theme: 'info',
+      icon: Lightbulb,
+      title: 'Navegación Estable',
+      message: 'Tus finanzas fluyen correctamente. No hay alertas graves en el horizonte.',
+      action: 'Es un buen momento para revisar si puedes optimizar algún gasto hormiga.'
     };
-  }, [projectedBalance, spendingVelocity, activeCycle, categoryData, effectiveBudget]);
+  }, [projectedBalance, spendingVelocity, activeCycle, categoryData, effectiveBudget, daysPassed, progressPercentage, fixedRatio, currentSurplus, remainingBudget, zeroSpendDays]);
 
   const getCoachStyles = (theme: string) => {
     switch (theme) {
@@ -251,7 +297,7 @@ const Insights: React.FC = () => {
           <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-md border border-white/10 flex gap-3 items-start">
             <Lightbulb className="text-yellow-300 shrink-0 mt-0.5" size={18} fill="currentColor" fillOpacity={0.2} />
             <div>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">Consejo del día</span>
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">Estrategia</span>
               <p className="text-sm font-semibold text-white leading-snug">
                 {coachInsight.action}
               </p>

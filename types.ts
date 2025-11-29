@@ -93,4 +93,8 @@ export interface FinancialContextType {
   
   // History
   cycleHistory: CycleHistoryItem[];
+
+  // Categories
+  categories: string[];
+  addCategory: (category: string) => void;
 }
