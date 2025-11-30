@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { TransactionType } from '../types';
+import { TransactionType, Transaction } from '../types';
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -15,7 +16,12 @@ import {
   MoreHorizontal, 
   X, 
   Calendar as CalendarIcon, 
-  DollarSign 
+  DollarSign,
+  ArrowRightLeft,
+  ArrowUp,
+  ArrowDown,
+  AlertTriangle,
+  Save
 } from 'lucide-react';
 
 const Budget: React.FC = () => {
@@ -26,10 +32,12 @@ const Budget: React.FC = () => {
     weeklyBreakdown, 
     currentWeekStatus,
     transactions, 
+    updateTransaction,
     deleteTransaction,
     currentSavingsGoal,
     setSavingsGoal,
-    totalDisposableIncome
+    totalDisposableIncome,
+    categories
   } = useFinance();
 
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
@@ -40,6 +48,20 @@ const Budget: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [initialBudgetInput, setInitialBudgetInput] = useState('');
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  
+  // Edit Form State
+  const [editAmount, setEditAmount] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editType, setEditType] = useState<TransactionType>(TransactionType.EXPENSE);
+  const [editIsExceptional, setEditIsExceptional] = useState(false);
+
+  // Delete Confirmation State
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
 
   const currentWeekRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +125,46 @@ const Budget: React.FC = () => {
     setExpandedTxId(prev => prev === id ? null : id);
   };
 
+  // --- EDIT FUNCTIONS ---
+  const openEditModal = (tx: Transaction) => {
+    setEditingTx(tx);
+    setEditAmount(tx.amount.toString());
+    setEditDesc(tx.description);
+    setEditCategory(tx.category);
+    setEditType(tx.type);
+    setEditIsExceptional(!!tx.isExceptional);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTransaction = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTx || !editAmount) return;
+
+    updateTransaction({
+      ...editingTx,
+      amount: parseFloat(editAmount),
+      description: editDesc || (editType === TransactionType.INCOME ? 'Ingreso' : 'Gasto'),
+      category: editType === TransactionType.INCOME ? 'Ingreso' : editCategory,
+      type: editType,
+      isExceptional: editType === TransactionType.EXPENSE ? editIsExceptional : false
+    });
+
+    setIsEditModalOpen(false);
+    setEditingTx(null);
+  };
+
+  // --- DELETE FUNCTIONS ---
+  const confirmDelete = (id: string) => {
+    setDeleteConfirmationId(id);
+  };
+
+  const executeDelete = () => {
+    if (deleteConfirmationId) {
+      deleteTransaction(deleteConfirmationId);
+      setDeleteConfirmationId(null);
+    }
+  };
+
   useEffect(() => {
     if (showWeeklyDetail && currentWeekRef.current) {
       setTimeout(() => {
@@ -127,7 +189,7 @@ const Budget: React.FC = () => {
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
-  const ModalContent = () => (
+  const CycleModalContent = () => (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCycleModalOpen(false)} />
         <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4 relative z-10">
@@ -203,6 +265,144 @@ const Budget: React.FC = () => {
     </div>
   );
 
+  const EditModalContent = () => (
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+        <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden animate-in sm:m-4">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Editar Transacción</h3>
+                <button onClick={() => setIsEditModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500">
+                    <X size={20} />
+                </button>
+            </div>
+            
+            <form onSubmit={handleUpdateTransaction} className="space-y-5">
+                
+                {/* Type Switcher */}
+                <div className="flex bg-gray-100 p-1 rounded-2xl">
+                    <button
+                        type="button"
+                        onClick={() => setEditType(TransactionType.EXPENSE)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.EXPENSE ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'}`}
+                    >
+                        <ArrowUp size={16} /> Gasto
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setEditType(TransactionType.INCOME)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.INCOME ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500'}`}
+                    >
+                        <ArrowDown size={16} /> Ingreso
+                    </button>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-500 mb-1">Monto</label>
+                    <div className="relative">
+                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${editType === TransactionType.INCOME ? 'text-green-500' : 'text-gray-400'}`}>$</span>
+                    <input 
+                        type="number" 
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                        className={`w-full text-4xl font-bold border-b-2 border-gray-100 focus:border-black focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 ${editType === TransactionType.INCOME ? 'text-green-600' : 'text-gray-900'}`}
+                        placeholder="0"
+                        inputMode="decimal"
+                    />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-500 mb-2">Descripción</label>
+                    <input 
+                    type="text" 
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    className="w-full p-4 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 font-medium text-lg"
+                    placeholder="Descripción..."
+                    />
+                </div>
+
+                {editType === TransactionType.EXPENSE && (
+                    <>
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-500 mb-2">Categoría</label>
+                        <div className="flex flex-wrap gap-2">
+                        {categories.map(c => (
+                            <button
+                            key={c}
+                            type="button"
+                            onClick={() => setEditCategory(c)}
+                            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${editCategory === c ? 'bg-black text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                            >
+                            {c}
+                            </button>
+                        ))}
+                        </div>
+                    </div>
+
+                    {/* Exceptional Toggle */}
+                    <div 
+                        onClick={() => setEditIsExceptional(!editIsExceptional)}
+                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${editIsExceptional ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-transparent'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${editIsExceptional ? 'bg-amber-100 text-amber-600' : 'bg-gray-200 text-gray-500'}`}>
+                            <AlertTriangle size={18} />
+                        </div>
+                        <div>
+                            <p className={`text-sm font-bold ${editIsExceptional ? 'text-amber-900' : 'text-gray-700'}`}>Gasto Excepcional</p>
+                            <p className="text-xs text-gray-500">No afecta el ritmo diario habitual</p>
+                        </div>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${editIsExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300'}`}>
+                        {editIsExceptional && <div className="w-2 h-2 bg-white rounded-full" />}
+                        </div>
+                    </div>
+                    </>
+                )}
+
+                <button 
+                    type="submit" 
+                    className="w-full bg-black text-white font-bold py-4 rounded-2xl shadow-lg shadow-black/20 active:scale-[0.98] transition-all text-lg flex items-center justify-center gap-2"
+                >
+                    <Save size={20} /> Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+  );
+
+  const DeleteConfirmationModal = () => (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteConfirmationId(null)} />
+        <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl relative z-10 animate-in transform scale-100">
+             <div className="flex flex-col items-center text-center">
+                <div className="bg-red-100 p-4 rounded-full mb-4 text-red-500">
+                    <Trash2 size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">¿Eliminar transacción?</h3>
+                <p className="text-gray-500 text-sm mb-6">
+                    Esta acción no se puede deshacer y afectará los cálculos de tu presupuesto actual.
+                </p>
+                <div className="flex gap-3 w-full">
+                    <button 
+                        onClick={() => setDeleteConfirmationId(null)}
+                        className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl active:scale-95 transition-transform"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        onClick={executeDelete}
+                        className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-200 active:scale-95 transition-transform"
+                    >
+                        Eliminar
+                    </button>
+                </div>
+             </div>
+        </div>
+    </div>
+  );
+
   if (!activeCycle) {
       return (
           <>
@@ -219,7 +419,7 @@ const Budget: React.FC = () => {
                     Iniciar Nuevo Ciclo
                 </button>
             </div>
-            {isCycleModalOpen && <ModalContent />}
+            {isCycleModalOpen && <CycleModalContent />}
           </>
       );
   }
@@ -297,34 +497,50 @@ const Budget: React.FC = () => {
         
         {showWeeklyDetail && (
           <div className="px-5 pb-5 space-y-2">
-            {weeklyBreakdown.map((week) => (
+            {weeklyBreakdown.map((week) => {
+               // Calculate if this week is "squeezed" compared to the original average
+               const originalDailyAverage = activeCycle ? activeCycle.initialBudget / cycleMetrics.daysTotal : 0;
+               const originalWeekLimit = originalDailyAverage * 7;
+               // If limit is < 95% of original, it means it was adjusted down due to overspending elsewhere
+               const isSqueezed = !week.isCurrent && new Date(week.startDate) > new Date() && week.limit < (originalWeekLimit * 0.95);
+
+               return (
               <div 
                 key={week.weekNumber} 
                 ref={week.isCurrent ? currentWeekRef : null}
                 className={`p-3 rounded-2xl flex justify-between items-center transition-colors ${week.isCurrent ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 text-gray-600'}`}
               >
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-bold uppercase ${week.isCurrent ? 'text-blue-100' : 'text-gray-400'}`}>
                       {week.label}
                     </span>
+                    {isSqueezed && week.remaining > 0 && (
+                        <span className="flex items-center gap-1 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider border border-amber-200">
+                            <ArrowRightLeft size={8} /> Ajustado
+                        </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                       <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-400'}`}>
                         {new Date(week.startDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - {new Date(week.endDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                       </p>
                       <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-400'}`}>
-                         • Sugerido: ${Math.round(week.limit).toLocaleString()}
+                         • Límite: ${Math.round(week.limit).toLocaleString()}
                       </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-bold text-sm ${week.remaining < 0 && !week.isCurrent ? 'text-red-500' : ''}`}>
-                    ${week.remaining.toLocaleString()}
+                  <p className={`font-bold text-sm ${week.remaining < 0 ? 'text-red-400' : ''}`}>
+                    ${Math.round(week.remaining).toLocaleString()}
                   </p>
+                  {week.isCurrent && (
+                      <p className="text-[9px] text-blue-200 font-medium">Disponible</p>
+                  )}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
@@ -382,9 +598,16 @@ const Budget: React.FC = () => {
                     <button 
                       onClick={(e) => { 
                         e.stopPropagation(); 
-                        // Eliminamos window.confirm para evitar bloqueos en mobile.
-                        // La accion es inmediata y fluida.
-                        deleteTransaction(t.id); 
+                        openEditModal(t);
+                      }}
+                      className="flex items-center gap-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-100 shadow-sm active:scale-95 transition-transform"
+                    >
+                      <Edit3 size={14} /> Editar
+                    </button>
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        confirmDelete(t.id);
                       }}
                       className="flex items-center gap-2 text-xs font-bold text-red-600 bg-white border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-red-50 shadow-sm active:scale-95 transition-transform"
                     >
@@ -398,7 +621,9 @@ const Budget: React.FC = () => {
         </div>
       </div>
       
-      {isCycleModalOpen && <ModalContent />}
+      {isCycleModalOpen && <CycleModalContent />}
+      {isEditModalOpen && <EditModalContent />}
+      {deleteConfirmationId && <DeleteConfirmationModal />}
     </div>
   );
 };

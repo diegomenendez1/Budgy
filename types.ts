@@ -1,3 +1,4 @@
+
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
@@ -70,6 +71,7 @@ export interface FinancialContextType {
   transactions: Transaction[];
   recurringItems: RecurringItem[];
   addTransaction: (t: Omit<Transaction, 'id'>) => void;
+  updateTransaction: (t: Transaction) => void;
   deleteTransaction: (id: string) => void;
   addRecurringItem: (item: Omit<RecurringItem, 'id'>) => void;
   deleteRecurringItem: (id: string) => void;
@@ -85,6 +87,7 @@ export interface FinancialContextType {
   cycles: Cycle[];
   activeCycle: Cycle | null;
   createCycle: (endDate: Date, initialBudget: number) => void;
+  transferSavingsToBudget: () => void;
   
   // Active Cycle Metrics
   cycleMetrics: CycleMetrics;
