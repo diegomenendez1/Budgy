@@ -51,6 +51,7 @@ export interface CycleMetrics {
   daysPassed: number;
   daysTotal: number;
   progressPercentage: number;
+  totalAvailable: number;
   remainingBudget: number;
   spentThisCycle: number;
   spentPace: number; // Spend excluding exceptional items

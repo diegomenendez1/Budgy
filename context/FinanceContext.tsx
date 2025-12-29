@@ -156,7 +156,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!activeCycle) {
       return {
         daysPassed: 0, daysTotal: 30, progressPercentage: 0,
-        remainingBudget: 0, spentThisCycle: 0, spentPace: 0,
+        totalAvailable: 0, remainingBudget: 0, spentThisCycle: 0, spentPace: 0,
         idealDailyBudget: 0, currentSurplus: 0, isOverspending: false,
         suggestedDailyBudget: null
       };
@@ -220,6 +220,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       daysPassed,
       daysTotal,
       progressPercentage,
+      totalAvailable,
       remainingBudget,
       spentThisCycle,
       spentPace,

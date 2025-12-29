@@ -50,6 +50,7 @@ const Insights: React.FC = () => {
   const {
       daysPassed,
       progressPercentage,
+      totalAvailable,
       spentThisCycle,
       spentPace,
       idealDailyBudget,
@@ -59,7 +60,9 @@ const Insights: React.FC = () => {
 
   // --- 1. Projections and Velocity ---
   // Effective Budget = Total Available for Spending
-  const effectiveBudget = activeCycle ? activeCycle.initialBudget : 0;
+  const effectiveBudget = totalAvailable;
+  const daysTotal = cycleMetrics.daysTotal || 30;
+  const dailyLimit = daysTotal > 0 ? effectiveBudget / daysTotal : 0;
   
   // Burn Rate: % of budget spent
   const burnRate = effectiveBudget > 0 ? (spentThisCycle / effectiveBudget) * 100 : 0;
@@ -68,7 +71,7 @@ const Insights: React.FC = () => {
   const spendingVelocity = progressPercentage > 0 ? burnRate / progressPercentage : 0;
   
   const dailyAverage = daysPassed > 0 ? spentThisCycle / daysPassed : 0;
-  const projectedSpend = dailyAverage * (cycleMetrics.daysTotal || 30);
+  const projectedSpend = dailyAverage * daysTotal;
   const projectedBalance = effectiveBudget - projectedSpend;
 
   // --- 2. Data by Category (Filtered by Active Cycle) ---
@@ -143,7 +146,7 @@ const Insights: React.FC = () => {
     };
 
     const mainCategory = categoryData[0] ? categoryData[0].name : 'gastos varios';
-    const daysLeft = (cycleMetrics.daysTotal || 30) - daysPassed;
+    const daysLeft = daysTotal - daysPassed;
     const isBeginning = progressPercentage < 20;
     const isEnding = daysLeft <= 5;
 
@@ -499,7 +502,7 @@ const Insights: React.FC = () => {
                       <span className="text-gray-900">${Math.round(dailyAverage).toLocaleString()} / día</span>
                   </div>
                   <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(((dailyAverage / (effectiveBudget/30)) * 100), 100)}%` }}></div>
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${dailyLimit > 0 ? Math.min(((dailyAverage / dailyLimit) * 100), 100) : 0}%` }}></div>
                   </div>
               </div>
 
@@ -507,7 +510,7 @@ const Insights: React.FC = () => {
               <div>
                   <div className="flex justify-between text-xs font-bold mb-1.5">
                       <span className="text-gray-400">Límite Saludable</span>
-                      <span className="text-gray-500">${Math.round(effectiveBudget / 30).toLocaleString()} / día</span>
+                      <span className="text-gray-500">${Math.round(dailyLimit).toLocaleString()} / día</span>
                   </div>
                   <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden relative">
                       <div className="absolute inset-0 w-full h-full opacity-30 bg-[linear-gradient(45deg,#000_25%,transparent_25%,transparent_50%,#000_50%,#000_75%,transparent_75%,transparent)] bg-[length:10px_10px]"></div>
