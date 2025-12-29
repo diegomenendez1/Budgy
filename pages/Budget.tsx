@@ -85,7 +85,10 @@ const Budget: React.FC = () => {
 
   // Modern progress bar logic
   let progressBarColor = 'bg-gray-900';
-  const percentageOfBudget = activeCycle ? (cycleMetrics.spentThisCycle / activeCycle.initialBudget) * 100 : 0;
+  const totalAvailable = cycleMetrics.remainingBudget + cycleMetrics.spentThisCycle;
+  const percentageOfBudget = activeCycle && totalAvailable > 0
+    ? (cycleMetrics.spentThisCycle / totalAvailable) * 100
+    : 0;
   
   if (percentageOfBudget >= 80) progressBarColor = 'bg-orange-500';
   if (percentageOfBudget >= 100) progressBarColor = 'bg-red-500';
