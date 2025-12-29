@@ -12,6 +12,7 @@ export const analyzeFinances = async (
   if (!apiKey) return "API Key no configurada.";
 
   const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
+  const variableIncome = transactions.filter(t => t.type === TransactionType.INCOME);
   const fixedExpenses = recurringItems.filter(r => r.type === TransactionType.EXPENSE);
   const income = recurringItems.filter(r => r.type === TransactionType.INCOME);
 
@@ -20,11 +21,12 @@ export const analyzeFinances = async (
     fixed_income_sources: income.map(i => ({ desc: i.description, amount: i.amount })),
     fixed_expenses: fixedExpenses.map(e => ({ desc: e.description, amount: e.amount })),
     recent_variable_expenses: expenses.slice(0, 30).map(e => ({ desc: e.description, amount: e.amount, date: e.date, category: e.category, exceptional: e.isExceptional })),
+    recent_variable_income: variableIncome.slice(0, 30).map(i => ({ desc: i.description, amount: i.amount, date: i.date })),
     calculated_disposable_income: disposableIncome,
   });
 
   const prompt = `
-    Actúa como un asesor financiero experto y empático. Analiza mis datos financieros a continuación (en JSON).
+    Actúa como un asesor financiero experto y empático. Analiza mis datos financieros a continuación (en JSON), considerando tanto ingresos fijos como ingresos variables recientes.
     
     Datos: ${dataSummary}
 
