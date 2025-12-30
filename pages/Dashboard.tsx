@@ -75,17 +75,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </div>
 
       {/* 2. Primary Status Card */}
-      <div className="bg-gray-900 rounded-[28px] p-6 text-white shadow-xl shadow-gray-900/10 relative overflow-hidden">
-        {/* Background accent */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full blur-[60px] opacity-20"></div>
+      <div className="bg-gradient-to-br from-gray-900 to-blue-950 rounded-[32px] p-8 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden group">
+        {/* Decorative elements */}
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-500 rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500 rounded-full blur-[60px] opacity-10"></div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center py-4">
-          <span className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Disponible Real</span>
-          <span className={`text - 5xl font - extrabold tracking - tighter mb - 2 ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'} `}>
-            ${remainingBudget.toLocaleString()}
-          </span>
-          <div className={`flex items - center gap - 1.5 px - 3 py - 1 rounded - full text - xs font - bold ${currentSurplus >= 0 ? 'bg-green-500/20 text-green-300' : 'bg-orange-500/20 text-orange-300'} `}>
-            {currentSurplus >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+        <div className="relative z-10 flex flex-col items-center justify-center">
+          <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Disponible Real</span>
+          <div className="flex items-baseline gap-1 mb-3">
+            <span className="text-2xl font-bold text-blue-200/40">$</span>
+            <span className={`text-6xl font-black tracking-tighter ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'}`}>
+              {Math.abs(Math.round(remainingBudget)).toLocaleString()}
+            </span>
+          </div>
+
+          <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-md border ${currentSurplus >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-orange-500/10 border-orange-500/20 text-orange-400'}`}>
+            {currentSurplus >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
             <span>
               {currentSurplus > 0 ? '+' : ''}{Math.round(currentSurplus).toLocaleString()} vs. Ideal
             </span>
@@ -93,66 +98,56 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* 3. Status Band */}
-      <div className={`rounded - 2xl p - 4 flex items - center gap - 4 border shadow - sm transition - colors duration - 500
-        ${isOverspending
-          ? 'bg-white border-orange-100'
-          : currentSurplus > (totalDisposableIncome * 0.1) // Just an example threshold 
-            ? 'bg-white border-green-100'
-            : 'bg-white border-gray-100'
-        } `}
+      {/* 3. Status Band (Refined) */}
+      <div className={`rounded-3xl p-5 flex items-center gap-5 border transition-all duration-500 shadow-sm bg-white
+        ${isOverspending ? 'border-orange-100' : currentSurplus > (totalDisposableIncome * 0.1) ? 'border-green-100' : 'border-gray-100'}`}
       >
-        <div className={`w - 12 h - 12 rounded - full flex items - center justify - center shrink - 0
-          ${isOverspending
-            ? 'bg-orange-50 text-orange-500'
-            : currentSurplus > (totalDisposableIncome * 0.1)
-              ? 'bg-green-50 text-green-500'
-              : 'bg-gray-50 text-gray-500'
-          } `}
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
+          ${isOverspending ? 'bg-orange-50 text-orange-500' : currentSurplus > (totalDisposableIncome * 0.1) ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-500'}`}
         >
-          {isOverspending ? <AlertTriangle size={20} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={20} /> : <CheckCircle2 size={20} />}
+          {isOverspending ? <AlertTriangle size={24} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={24} /> : <CheckCircle2 size={24} />}
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-sm text-gray-900 mb-0.5">
-            {isOverspending ? 'Ritmo acelerado' : currentSurplus > (totalDisposableIncome * 0.1) ? 'Excelente superávit' : 'Ritmo balanceado'}
+        <div className="flex-1">
+          <h3 className="font-bold text-gray-900 text-base mb-0.5">
+            {isOverspending ? 'Ajusta el ritmo' : currentSurplus > (totalDisposableIncome * 0.1) ? '¡Vas excelente!' : 'Todo bajo control'}
           </h3>
-          <p className="text-xs text-gray-500 leading-snug truncate">
+          <p className="text-xs text-gray-500 font-medium leading-relaxed">
             {isOverspending
-              ? 'Estás consumiendo el presupuesto muy rápido.'
+              ? 'Trata de reducir gastos variables hoy.'
               : currentSurplus > (totalDisposableIncome * 0.1)
-                ? 'Vas muy por debajo de tu límite de gasto.'
-                : 'Tus finanzas van alineadas al calendario.'}
+                ? 'Estás ahorrando más de lo planeado.'
+                : 'Tus gastos están alineados con tu meta.'}
           </p>
         </div>
       </div>
 
-      {/* 4. Shortcuts Grid */}
-      <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Accesos Directos</h3>
-        <div className="grid grid-cols-2 gap-3">
+      {/* 4. Shortcuts Grid (Premium) */}
+      <div className="px-1">
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4">Accesos Directos</h3>
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => onNavigate('budget')}
-            className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-28 group active:scale-95 transition-transform"
+            className="bg-white p-5 rounded-[28px] shadow-sm border border-gray-100 flex flex-col items-start justify-between h-36 active:scale-95 transition-all hover:border-blue-200 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
-              <Wallet size={20} />
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Wallet size={24} />
             </div>
-            <div className="text-left">
-              <p className="font-bold text-gray-900 text-sm">Presupuesto</p>
-              <p className="text-[10px] text-gray-500 font-medium mt-0.5">Gestión de ciclos</p>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Gestionar Ciclo</p>
+              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Presupuesto</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigate('insights')}
-            className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-28 group active:scale-95 transition-transform"
+            className="bg-white p-5 rounded-[28px] shadow-sm border border-gray-100 flex flex-col items-start justify-between h-36 active:scale-95 transition-all hover:border-purple-200 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-2">
-              <Sparkles size={20} />
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <Sparkles size={24} />
             </div>
-            <div className="text-left">
-              <p className="font-bold text-gray-900 text-sm">Análisis</p>
-              <p className="text-[10px] text-gray-500 font-medium mt-0.5">Coach financiero</p>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Asistente IA</p>
+              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Análisis</p>
             </div>
           </button>
         </div>

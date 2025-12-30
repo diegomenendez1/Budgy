@@ -27,7 +27,7 @@ const App: React.FC = () => {
   return (
     <FinanceProvider>
       <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
-        <main className="max-w-md mx-auto min-h-screen relative overflow-hidden">
+        <main className="max-w-md mx-auto min-h-screen relative">
           {/* Content Wrapper with Safe Area logic */}
           <div className="pt-safe pb-safe-nav px-5">
             <AnimatePresence mode="wait">
