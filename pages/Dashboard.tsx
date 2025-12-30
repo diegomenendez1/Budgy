@@ -1,14 +1,15 @@
 import React from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { 
-  TrendingDown, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Wallet, 
-  Sparkles, 
+import {
+  TrendingDown,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  Wallet,
+  Sparkles,
   ShieldCheck,
-  Calendar
+  Calendar,
+  ArrowRight
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -16,92 +17,94 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
-  const { 
+  const {
     activeCycle,
     cycleMetrics,
-    totalDisposableIncome 
+    totalDisposableIncome
   } = useFinance();
 
   if (!activeCycle) {
-      return (
-          <div className="flex flex-col items-center justify-center h-[80vh] px-6 text-center">
-             <div className="bg-gray-100 p-4 rounded-full mb-4">
-                 <Wallet size={32} className="text-gray-400" />
-             </div>
-             <h2 className="text-xl font-bold text-gray-900 mb-2">Bienvenido</h2>
-             <p className="text-gray-500 text-sm mb-6">Para ver tu resumen financiero, necesitas configurar tu presupuesto y empezar un ciclo.</p>
-             <button 
-                onClick={() => onNavigate('budget')}
-                className="bg-black text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-gray-200"
-             >
-                 Ir a Presupuesto
-             </button>
-          </div>
-      );
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-8 text-center animate-in">
+        <div className="w-24 h-24 bg-white rounded-[32px] flex items-center justify-center shadow-2xl shadow-gray-200/50 mb-8 border border-white relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <Wallet size={40} className="text-gray-900 relative z-10" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Tu viaje financiero comienza aquí</h2>
+        <p className="text-gray-400 text-sm mb-10 leading-relaxed max-w-[280px]">Configura tu presupuesto mensual para que podamos ayudarte a ahorrar y gastar con inteligencia.</p>
+        <button
+          onClick={() => onNavigate('budget')}
+          className="w-full bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+        >
+          <span>Empezar Configuración</span>
+          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
+    );
   }
 
   // Use the pre-calculated metrics from context
-  const { 
-      remainingBudget, 
-      currentSurplus, 
-      isOverspending, 
-      daysPassed 
+  const {
+    remainingBudget,
+    currentSurplus,
+    isOverspending,
+    daysPassed
   } = cycleMetrics;
 
   return (
     <div className="animate-in space-y-6 pt-4">
-      
+
       {/* 1. Modern Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Resumen</h1>
           <div className="flex items-center gap-1.5 mt-1">
-             <Calendar size={12} className="text-gray-400" />
-             <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">
-                 Día {daysPassed} • {activeCycle.name}
-             </p>
+            <Calendar size={12} className="text-gray-400" />
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">
+              Día {daysPassed} • {activeCycle.name}
+            </p>
           </div>
         </div>
         <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
-           <ShieldCheck size={20} className="text-green-500" />
+          <ShieldCheck size={20} className="text-green-500" />
         </div>
       </div>
 
       {/* 2. Primary Status Card */}
       <div className="bg-gray-900 rounded-[28px] p-6 text-white shadow-xl shadow-gray-900/10 relative overflow-hidden">
-         {/* Background accent */}
-         <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full blur-[60px] opacity-20"></div>
-         
-         <div className="relative z-10 flex flex-col items-center justify-center py-4">
-            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Disponible Real</span>
-            <span className={`text-5xl font-extrabold tracking-tighter mb-2 ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'}`}>
-              ${remainingBudget.toLocaleString()}
+        {/* Background accent */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full blur-[60px] opacity-20"></div>
+
+        <div className="relative z-10 flex flex-col items-center justify-center py-4">
+          <span className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Disponible Real</span>
+          <span className={`text - 5xl font - extrabold tracking - tighter mb - 2 ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'} `}>
+            ${remainingBudget.toLocaleString()}
+          </span>
+          <div className={`flex items - center gap - 1.5 px - 3 py - 1 rounded - full text - xs font - bold ${currentSurplus >= 0 ? 'bg-green-500/20 text-green-300' : 'bg-orange-500/20 text-orange-300'} `}>
+            {currentSurplus >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            <span>
+              {currentSurplus > 0 ? '+' : ''}{Math.round(currentSurplus).toLocaleString()} vs. Ideal
             </span>
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${currentSurplus >= 0 ? 'bg-green-500/20 text-green-300' : 'bg-orange-500/20 text-orange-300'}`}>
-                {currentSurplus >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                <span>
-                  {currentSurplus > 0 ? '+' : ''}{Math.round(currentSurplus).toLocaleString()} vs. Ideal
-                </span>
-            </div>
-         </div>
+          </div>
+        </div>
       </div>
 
       {/* 3. Status Band */}
-      <div className={`rounded-2xl p-4 flex items-center gap-4 border shadow-sm transition-colors duration-500
-        ${isOverspending 
-          ? 'bg-white border-orange-100' 
+      <div className={`rounded - 2xl p - 4 flex items - center gap - 4 border shadow - sm transition - colors duration - 500
+        ${isOverspending
+          ? 'bg-white border-orange-100'
           : currentSurplus > (totalDisposableIncome * 0.1) // Just an example threshold 
-            ? 'bg-white border-green-100' 
+            ? 'bg-white border-green-100'
             : 'bg-white border-gray-100'
-        }`}
+        } `}
       >
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0
-          ${isOverspending 
-            ? 'bg-orange-50 text-orange-500' 
+        <div className={`w - 12 h - 12 rounded - full flex items - center justify - center shrink - 0
+          ${isOverspending
+            ? 'bg-orange-50 text-orange-500'
             : currentSurplus > (totalDisposableIncome * 0.1)
-              ? 'bg-green-50 text-green-500' 
+              ? 'bg-green-50 text-green-500'
               : 'bg-gray-50 text-gray-500'
-          }`}
+          } `}
         >
           {isOverspending ? <AlertTriangle size={20} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={20} /> : <CheckCircle2 size={20} />}
         </div>
@@ -110,10 +113,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             {isOverspending ? 'Ritmo acelerado' : currentSurplus > (totalDisposableIncome * 0.1) ? 'Excelente superávit' : 'Ritmo balanceado'}
           </h3>
           <p className="text-xs text-gray-500 leading-snug truncate">
-            {isOverspending 
-              ? 'Estás consumiendo el presupuesto muy rápido.' 
-              : currentSurplus > (totalDisposableIncome * 0.1) 
-                ? 'Vas muy por debajo de tu límite de gasto.' 
+            {isOverspending
+              ? 'Estás consumiendo el presupuesto muy rápido.'
+              : currentSurplus > (totalDisposableIncome * 0.1)
+                ? 'Vas muy por debajo de tu límite de gasto.'
                 : 'Tus finanzas van alineadas al calendario.'}
           </p>
         </div>
@@ -123,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div>
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Accesos Directos</h3>
         <div className="grid grid-cols-2 gap-3">
-          <button 
+          <button
             onClick={() => onNavigate('budget')}
             className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-28 group active:scale-95 transition-transform"
           >
@@ -136,7 +139,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </button>
 
-          <button 
+          <button
             onClick={() => onNavigate('insights')}
             className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-28 group active:scale-95 transition-transform"
           >

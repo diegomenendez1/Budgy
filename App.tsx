@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import TabBar from './components/TabBar';
 import Dashboard from './pages/Dashboard';
 import Budget from './pages/Budget';
@@ -26,15 +27,25 @@ const App: React.FC = () => {
   return (
     <FinanceProvider>
       <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
-        <main className="max-w-md mx-auto min-h-screen relative">
-           {/* Content Wrapper with Safe Area logic */}
-           <div className="pt-safe pb-safe-nav px-5">
-              {renderPage()}
-           </div>
+        <main className="max-w-md mx-auto min-h-screen relative overflow-hidden">
+          {/* Content Wrapper with Safe Area logic */}
+          <div className="pt-safe pb-safe-nav px-5">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                {renderPage()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
-        
+
         {showFloatingButton && <FloatingAddButton />}
-        
+
         <TabBar currentTab={currentTab} setTab={setCurrentTab} />
       </div>
     </FinanceProvider>

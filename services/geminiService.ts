@@ -1,56 +1,56 @@
 import { GoogleGenAI } from "@google/genai";
 import { Transaction, RecurringItem, TransactionType } from '../types';
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = process.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const analyzeFinances = async (
-  transactions: Transaction[], 
+  transactions: Transaction[],
   recurringItems: RecurringItem[],
   disposableIncome: number
 ): Promise<string> => {
-  if (!apiKey) return "API Key no configurada.";
+  if (!apiKey) return "Configura tu VITE_GEMINI_API_KEY para activar el asesor inteligente.";
 
   const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
   const variableIncome = transactions.filter(t => t.type === TransactionType.INCOME);
   const fixedExpenses = recurringItems.filter(r => r.type === TransactionType.EXPENSE);
   const income = recurringItems.filter(r => r.type === TransactionType.INCOME);
 
-  // Prepare data summary for the prompt
   const dataSummary = JSON.stringify({
     fixed_income_sources: income.map(i => ({ desc: i.description, amount: i.amount })),
     fixed_expenses: fixedExpenses.map(e => ({ desc: e.description, amount: e.amount })),
-    recent_variable_expenses: expenses.slice(0, 30).map(e => ({ desc: e.description, amount: e.amount, date: e.date, category: e.category, exceptional: e.isExceptional })),
-    recent_variable_income: variableIncome.slice(0, 30).map(i => ({ desc: i.description, amount: i.amount, date: i.date })),
+    recent_variable_expenses: expenses.slice(0, 50).map(e => ({ desc: e.description, amount: e.amount, date: e.date, category: e.category, exceptional: e.isExceptional })),
+    recent_variable_income: variableIncome.slice(0, 20).map(i => ({ desc: i.description, amount: i.amount, date: i.date })),
     calculated_disposable_income: disposableIncome,
   });
 
   const prompt = `
-    Actúa como un asesor financiero experto y empático. Analiza mis datos financieros a continuación (en JSON), considerando tanto ingresos fijos como ingresos variables recientes.
+    Como estratega financiero de élite, analiza el siguiente perfil financiero (JSON).
+    Tu objetivo es encontrar ineficiencias y proporcionar una hoja de ruta clara para maximizar el excedente.
     
-    Datos: ${dataSummary}
+    Perfil: ${dataSummary}
 
-    Genera una respuesta en Markdown con exactamente esta estructura:
+    Estructura tu respuesta en Markdown:
 
-    # 🤖 Resumen de IA
-    [Aquí escribe un párrafo breve de 3-4 líneas resumiendo mi estado actual, mencionando si estoy gastando demasiado en variables o si mi estructura fija es sólida.]
+    # 💎 Veredicto Estratégico
+    [Un párrafo ejecutivo y directo. Analiza el "Burn Rate" y la proporción de gastos fijos vs variables. Identifica fugas de efectivo o patrones de riesgo.]
 
-    # 💡 Acciones Recomendadas
-    * **[Título Acción 1]:** [Descripción breve]
-    * **[Título Acción 2]:** [Descripción breve]
-    * **[Título Acción 3]:** [Descripción breve]
+    # 🚀 Acciones de Alto Impacto
+    * **[Impacto Inmediato]:** [Acción concreta para esta semana basada en los gastos reales detectados.]
+    * **[Optimización Estructural]:** [Consejo sobre gastos fijos o ahorros a largo plazo.]
+    * **[Mentalidad de Riqueza]:** [Breve micro-hábito financiero relevante.]
 
-    Mantén el tono motivador pero realista. Usa emojis. No uses introducción ni cierre, ve directo al contenido.
+    Mantén un tono de "coach" de alto nivel: sofisticado, motivador y extremadamente preciso. Usa emojis premium como 💎, 📈, 🛡️, 🚀. Evita introducciones genéricas.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
     });
     return response.text || "No se pudo generar el análisis.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Ocurrió un error al contactar a tu asistente financiero.";
+    return "El analista está ocupado en este momento. Reintenta en unos segundos.";
   }
 };
