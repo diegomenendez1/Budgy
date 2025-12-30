@@ -25,19 +25,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   if (!activeCycle) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-8 text-center animate-in">
-        <div className="w-24 h-24 bg-white rounded-[32px] flex items-center justify-center shadow-2xl shadow-gray-200/50 mb-8 border border-white relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <Wallet size={40} className="text-gray-900 relative z-10" strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-center min-h-[75vh] px-10 text-center animate-in">
+        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg shadow-gray-200/60 mb-6 border border-white/50 relative group">
+          <div className="absolute inset-0 bg-blue-500/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <Wallet size={32} className="text-gray-900" strokeWidth={1.5} />
         </div>
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Tu viaje financiero comienza aquí</h2>
-        <p className="text-gray-400 text-sm mb-10 leading-relaxed max-w-[280px]">Configura tu presupuesto mensual para que podamos ayudarte a ahorrar y gastar con inteligencia.</p>
+
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Bienvenido a Budgy</h2>
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+          Para ver tu resumen financiero, necesitas configurar tu presupuesto y empezar un ciclo.
+        </p>
+
         <button
           onClick={() => onNavigate('budget')}
-          className="w-full bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+          className="bg-black text-white px-8 py-3.5 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-95 transition-all flex items-center gap-2"
         >
-          <span>Empezar Configuración</span>
-          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          <span>Ir a Presupuesto</span>
+          <ArrowRight size={16} />
         </button>
       </div>
     );
