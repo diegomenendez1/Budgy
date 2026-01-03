@@ -87,6 +87,7 @@ export interface FinancialContextType {
   updateTransaction: (t: Transaction) => void;
   deleteTransaction: (id: string) => void;
   addRecurringItem: (item: Omit<RecurringItem, 'id'>) => void;
+  updateRecurringItem: (item: RecurringItem) => void;
   deleteRecurringItem: (id: string) => void;
 
   // Planning Data (Live)
