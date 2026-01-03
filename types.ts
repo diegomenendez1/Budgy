@@ -9,7 +9,19 @@ export enum Frequency {
   ONE_TIME = 'ONE_TIME',
 }
 
-export interface Transaction {
+export interface BaseEntity {
+  owner_id?: string;
+  updated_at?: string; // ISO string
+  is_deleted?: boolean; // Soft delete for sync
+}
+
+export interface UserSettings extends BaseEntity {
+  id: string; // usually 'settings' or user_id
+  custom_categories: string[];
+  savings_goal: number;
+}
+
+export interface Transaction extends BaseEntity {
   id: string;
   description: string;
   amount: number;
@@ -19,7 +31,7 @@ export interface Transaction {
   isExceptional?: boolean; // Flag for one-off large expenses
 }
 
-export interface RecurringItem {
+export interface RecurringItem extends BaseEntity {
   id: string;
   description: string;
   amount: number;
@@ -37,7 +49,7 @@ export interface WeeklyStatus {
   label: string; // e.g., "Días 1-7"
 }
 
-export interface Cycle {
+export interface Cycle extends BaseEntity {
   id: string;
   name: string; // e.g., "Octubre 2024"
   startDate: string;
@@ -76,7 +88,7 @@ export interface FinancialContextType {
   deleteTransaction: (id: string) => void;
   addRecurringItem: (item: Omit<RecurringItem, 'id'>) => void;
   deleteRecurringItem: (id: string) => void;
-  
+
   // Planning Data (Live)
   totalFixedIncome: number;
   totalFixedExpenses: number;
@@ -89,12 +101,12 @@ export interface FinancialContextType {
   activeCycle: Cycle | null;
   createCycle: (endDate: Date, initialBudget: number) => void;
   transferSavingsToBudget: () => void;
-  
+
   // Active Cycle Metrics
   cycleMetrics: CycleMetrics;
   weeklyBreakdown: WeeklyStatus[];
   currentWeekStatus: WeeklyStatus | null;
-  
+
   // History
   cycleHistory: CycleHistoryItem[];
 

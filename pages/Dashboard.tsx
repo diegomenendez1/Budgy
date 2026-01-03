@@ -9,8 +9,10 @@ import {
   Sparkles,
   ShieldCheck,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  User
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
@@ -20,8 +22,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const {
     activeCycle,
     cycleMetrics,
-    totalDisposableIncome
+    totalDisposableIncome,
+    showAuth,
+    isSyncing
   } = useFinance();
+  const { user } = useAuth();
 
   if (!activeCycle) {
     return (
@@ -69,9 +74,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </p>
           </div>
         </div>
-        <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
-          <ShieldCheck size={20} className="text-green-500" />
-        </div>
+        <button
+          onClick={showAuth}
+          className="bg-white p-2 rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors"
+        >
+          <User size={20} className={user ? "text-blue-600" : "text-gray-400"} />
+          {isSyncing && (
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
+          )}
+        </button>
       </div>
 
       {/* 2. Primary Status Card */}
