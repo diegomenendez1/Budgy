@@ -2,6 +2,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Transaction, RecurringItem, FinancialContextType, TransactionType, WeeklyStatus, CycleHistoryItem, Cycle, CycleMetrics, UserSettings, BaseEntity } from '../types';
 import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
+import { AuthScreen } from '../components/AuthScreen';
+import { SyncConflictModal } from '../components/SyncConflictModal';
 
 const FinanceContext = createContext<FinancialContextType | undefined>(undefined);
 
@@ -78,8 +81,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem('customCategories', JSON.stringify(customCategories));
   }, [customCategories]);
 
-  // --- Sync State (DEACTIVATED) ---
-  const user = null;
+  // --- Sync State ---
+  const { user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showConflictModal, setShowConflictModal] = useState(false);
@@ -344,6 +347,12 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [user]);
 
   // Trigger sync on Online
+  useEffect(() => {
+    if (user) {
+      syncWithSupabase();
+    }
+  }, [user]);
+
   useEffect(() => {
     const handleOnline = () => {
       if (user) syncWithSupabase();
@@ -783,6 +792,31 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       generateDataPacket
     }}>
       {children}
+
+      {/* Modals placed here to be accessible globally */}
+      <div className="relative z-50">
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+            <div className="relative w-full max-w-md">
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="absolute top-4 right-4 z-10 text-white bg-black/20 hover:bg-black/40 rounded-full p-2"
+              >
+                ✕
+              </button>
+              <AuthScreen />
+            </div>
+          </div>
+        )}
+
+        <SyncConflictModal
+          isOpen={showConflictModal}
+          onResolve={(choice) => {
+            setShowConflictModal(false);
+            if (pendingSyncResolver) pendingSyncResolver(choice);
+          }}
+        />
+      </div>
     </FinanceContext.Provider>
   );
 };

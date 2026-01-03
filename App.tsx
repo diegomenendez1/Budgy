@@ -8,6 +8,7 @@ import Insights from './pages/Insights';
 import CoachPage from './pages/Coach';
 import FloatingAddButton from './components/FloatingAddButton';
 import { FinanceProvider } from './context/FinanceContext';
+import { AuthProvider } from './context/AuthContext';
 
 const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -27,30 +28,32 @@ const App: React.FC = () => {
   const showFloatingButton = ['dashboard', 'budget'].includes(currentTab);
 
   return (
-    <FinanceProvider>
-      <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
-        <main className="max-w-md mx-auto min-h-screen relative">
-          {/* Content Wrapper with Safe Area logic */}
-          <div className="pt-safe pb-safe-nav px-5">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentTab}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-              >
-                {renderPage()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </main>
+    <AuthProvider>
+      <FinanceProvider>
+        <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
+          <main className="max-w-md mx-auto min-h-screen relative">
+            {/* Content Wrapper with Safe Area logic */}
+            <div className="pt-safe pb-safe-nav px-5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentTab}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  {renderPage()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </main>
 
-        {showFloatingButton && <FloatingAddButton />}
+          {showFloatingButton && <FloatingAddButton />}
 
-        <TabBar currentTab={currentTab} setTab={setCurrentTab} />
-      </div>
-    </FinanceProvider>
+          <TabBar currentTab={currentTab} setTab={setCurrentTab} />
+        </div>
+      </FinanceProvider>
+    </AuthProvider>
   );
 };
 
