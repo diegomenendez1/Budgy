@@ -117,4 +117,5 @@ export interface FinancialContextType {
   // Auth & Sync
   showAuth: () => void;
   isSyncing: boolean;
+  resetData: () => void;
 }

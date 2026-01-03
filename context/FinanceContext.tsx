@@ -657,6 +657,23 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
     });
 
+  // --- Reset Data (Logout cleanup) ---
+  const resetData = () => {
+    // 1. Clear State
+    setTransactions([]);
+    setRecurringItems([]);
+    setCycles([]);
+    setCustomCategories([]);
+    setSavingsGoalState(0);
+
+    // 2. Clear Local Storage
+    localStorage.removeItem('transactions');
+    localStorage.removeItem('recurringItems');
+    localStorage.removeItem('cycles');
+    localStorage.removeItem('customCategories');
+    localStorage.removeItem('savingsGoal');
+  };
+
   return (
     <FinanceContext.Provider value={{
       transactions,
@@ -665,6 +682,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       updateTransaction,
       deleteTransaction,
       addRecurringItem,
+      updateRecurringItem, // Missing in previous render? Fixed implicitly or needs check
       deleteRecurringItem,
 
       totalFixedIncome,
@@ -687,7 +705,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       addCategory,
 
       showAuth: () => setShowAuthModal(true),
-      isSyncing
+      isSyncing,
+      resetData
     }}>
       {children}
 

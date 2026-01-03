@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useFinance } from '../context/FinanceContext';
 import { User, LogOut } from 'lucide-react';
 
 export const AuthScreen: React.FC = () => {
     const { user, signOut } = useAuth();
+    const { resetData } = useFinance();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
@@ -58,7 +60,10 @@ export const AuthScreen: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={signOut}
+                        onClick={() => {
+                            resetData();
+                            signOut();
+                        }}
                         className="w-full bg-red-600/10 hover:bg-red-600/20 text-red-400 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                         <LogOut size={18} />
@@ -88,6 +93,7 @@ export const AuthScreen: React.FC = () => {
                         <input
                             type="email"
                             required
+                            autoComplete="email"
                             className="w-full bg-neutral-900 border border-neutral-700 rounded p-3 focus:outline-none focus:border-teal-500 transition-colors"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -99,6 +105,7 @@ export const AuthScreen: React.FC = () => {
                             type="password"
                             required
                             minLength={6}
+                            autoComplete={isLogin ? "current-password" : "new-password"}
                             className="w-full bg-neutral-900 border border-neutral-700 rounded p-3 focus:outline-none focus:border-teal-500 transition-colors"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
