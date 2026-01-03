@@ -330,6 +330,50 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           await supabase.from('recurring_items').upsert(recUpdates);
         }
         setRecurringItems(mergedRec);
+
+        // 3. Cycles
+        const mergedCycles = [...cycles];
+        const cycleUpdates: any[] = [];
+        cloudCycles?.forEach(cCycle => {
+          const localIndex = mergedCycles.findIndex(l => l.id === cCycle.id);
+          if (localIndex === -1) {
+            mergedCycles.push(cCycle);
+          } else {
+            const localItem = mergedCycles[localIndex];
+            // Simple version: Cloud wins if exists, or use timestamp
+            const localDate = new Date(localItem.updated_at || 0);
+            const cloudDate = new Date(cCycle.updated_at || 0);
+            if (cloudDate > localDate) {
+              mergedCycles[localIndex] = cCycle;
+            } else if (localDate > cloudDate) {
+              cycleUpdates.push({ ...localItem, owner_id: user.id });
+            }
+          }
+        });
+
+        // Local legacy cycles -> push
+        mergedCycles.forEach(l => {
+          if (!cloudCycles?.some(c => c.id === l.id)) {
+            cycleUpdates.push({ ...l, owner_id: user.id, updated_at: l.updated_at || new Date().toISOString() });
+          }
+        });
+
+        if (cycleUpdates.length > 0) {
+          await supabase.from('cycles').upsert(cycleUpdates);
+        }
+        setCycles(mergedCycles as any);
+
+        // 4. Settings/Categories (Last Write Wins)
+        if (cloudSettings) {
+          // If cloud has checks, maybe we should check timestamps?
+          // For simplicity, let's say cloud wins for settings if they exist to restore them
+          if (cloudSettings.custom_categories && cloudSettings.custom_categories.length > 0) {
+            setCustomCategories(cloudSettings.custom_categories);
+          }
+          if (cloudSettings.savings_goal) {
+            setSavingsGoalState(cloudSettings.savings_goal);
+          }
+        }
       }
 
     } catch (err) {
