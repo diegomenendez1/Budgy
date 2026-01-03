@@ -41,13 +41,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           Para ver tu resumen financiero, necesitas configurar tu presupuesto y empezar un ciclo.
         </p>
 
-        <button
-          onClick={() => onNavigate('budget')}
-          className="bg-black text-white px-8 py-3.5 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-95 transition-all flex items-center gap-2"
-        >
-          <span>Ir a Presupuesto</span>
-          <ArrowRight size={16} />
-        </button>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <button
+            onClick={() => onNavigate('budget')}
+            className="bg-black text-white px-8 py-3.5 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-95 transition-all flex items-center justify-center gap-2 w-full"
+          >
+            <span>Ir a Presupuesto</span>
+            <ArrowRight size={16} />
+          </button>
+
+          <button
+            onClick={showAuth}
+            className="text-gray-500 font-medium text-sm py-2 hover:text-gray-900 transition-colors"
+          >
+            ¿Ya tienes cuenta? Inicia Sesión
+          </button>
+        </div>
       </div>
     );
   }

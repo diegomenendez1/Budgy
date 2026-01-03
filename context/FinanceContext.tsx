@@ -331,27 +331,26 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
         setRecurringItems(mergedRec);
 
-        // 3. Cycles
+        // 3. Cycles (CRITICAL FIX: Was missing!)
         const mergedCycles = [...cycles];
         const cycleUpdates: any[] = [];
         cloudCycles?.forEach(cCycle => {
-          const localIndex = mergedCycles.findIndex(l => l.id === cCycle.id);
+          const localIndex = mergedCycles.findIndex(cy => cy.id === cCycle.id);
           if (localIndex === -1) {
             mergedCycles.push(cCycle);
           } else {
-            const localItem = mergedCycles[localIndex];
-            // Simple version: Cloud wins if exists, or use timestamp
-            const localDate = new Date(localItem.updated_at || 0);
+            const localC = mergedCycles[localIndex];
+            const localDate = new Date(localC.updated_at || 0);
             const cloudDate = new Date(cCycle.updated_at || 0);
             if (cloudDate > localDate) {
               mergedCycles[localIndex] = cCycle;
             } else if (localDate > cloudDate) {
-              cycleUpdates.push({ ...localItem, owner_id: user.id });
+              cycleUpdates.push({ ...localC, owner_id: user.id });
             }
           }
         });
 
-        // Local legacy cycles -> push
+        // Push local-only cycles to cloud
         mergedCycles.forEach(l => {
           if (!cloudCycles?.some(c => c.id === l.id)) {
             cycleUpdates.push({ ...l, owner_id: user.id, updated_at: l.updated_at || new Date().toISOString() });
@@ -361,19 +360,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (cycleUpdates.length > 0) {
           await supabase.from('cycles').upsert(cycleUpdates);
         }
-        setCycles(mergedCycles as any);
-
-        // 4. Settings/Categories (Last Write Wins)
-        if (cloudSettings) {
-          // If cloud has checks, maybe we should check timestamps?
-          // For simplicity, let's say cloud wins for settings if they exist to restore them
-          if (cloudSettings.custom_categories && cloudSettings.custom_categories.length > 0) {
-            setCustomCategories(cloudSettings.custom_categories);
-          }
-          if (cloudSettings.savings_goal) {
-            setSavingsGoalState(cloudSettings.savings_goal);
-          }
-        }
+        setCycles(mergedCycles as Cycle[]);
       }
 
     } catch (err) {
@@ -655,16 +642,23 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     const capitalizedName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     const newCycle: Cycle = {
-      id: generateUUID(), // Usando generador robusto
+      id: generateUUID(),
       name: capitalizedName,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      initialBudget: customInitialBudget, // Use passed budget
+      initialBudget: customInitialBudget,
       savingsGoal: savingsGoal,
-      isActive: true
+      isActive: true,
+      owner_id: user?.id,
+      updated_at: new Date().toISOString()
     };
 
     setCycles([...updatedCycles, newCycle]);
+
+    if (user) {
+      // Auto-upload new cycle if online
+      supabase.from('cycles').upsert([...updatedCycles, newCycle].map(c => ({ ...c, owner_id: user.id, updated_at: new Date().toISOString() }))).then();
+    }
   };
 
   // --- Transfer Savings to Budget (Emergency Fund) ---
