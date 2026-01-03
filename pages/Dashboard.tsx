@@ -30,31 +30,49 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   if (!activeCycle) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[75vh] px-10 text-center animate-in">
-        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg shadow-gray-200/60 mb-6 border border-white/50 relative group">
-          <div className="absolute inset-0 bg-blue-500/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div className="flex flex-col items-center justify-center min-h-[75vh] px-6 text-center animate-in">
+        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg shadow-gray-200/60 mb-6 border border-white/50">
           <Wallet size={32} className="text-gray-900" strokeWidth={1.5} />
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Bienvenido a Budgy</h2>
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-          Para ver tu resumen financiero, necesitas configurar tu presupuesto y empezar un ciclo.
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed max-w-xs mx-auto">
+          Gestiona tus finanzas de forma inteligente.
         </p>
 
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-          <button
-            onClick={() => onNavigate('budget')}
-            className="bg-black text-white px-8 py-3.5 rounded-2xl font-bold shadow-xl shadow-gray-900/10 active:scale-95 transition-all flex items-center justify-center gap-2 w-full"
-          >
-            <span>Ir a Presupuesto</span>
-            <ArrowRight size={16} />
-          </button>
-
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          {/* Option A: Recovery / Login */}
           <button
             onClick={showAuth}
-            className="text-gray-500 font-medium text-sm py-2 hover:text-gray-900 transition-colors"
+            className="group relative bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all text-left flex items-center gap-4"
           >
-            ¿Ya tienes cuenta? Inicia Sesión
+            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
+              <User size={20} className="text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <span className="block font-bold text-gray-900 text-sm">Ya tengo cuenta</span>
+              <span className="text-xs text-gray-500">Recuperar mis datos</span>
+            </div>
+          </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-gray-200"></div>
+            <span className="flex-shrink-0 mx-4 text-gray-300 text-xs font-medium uppercase">O empieza de cero</span>
+            <div className="flex-grow border-t border-gray-200"></div>
+          </div>
+
+          {/* Option B: New User */}
+          <button
+            onClick={() => onNavigate('budget')}
+            className="group relative bg-black text-white p-4 rounded-2xl shadow-xl shadow-gray-900/10 active:scale-95 transition-all text-left flex items-center gap-4"
+          >
+            <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center shrink-0 group-hover:bg-gray-700 transition-colors">
+              <ArrowRight size={20} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <span className="block font-bold text-white text-sm">Soy nuevo</span>
+              <span className="text-xs text-gray-400">Crear primer presupuesto</span>
+            </div>
           </button>
         </div>
       </div>
