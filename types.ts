@@ -113,4 +113,8 @@ export interface FinancialContextType {
   // Categories
   categories: string[];
   addCategory: (category: string) => void;
+
+  // Auth & Sync
+  showAuth: () => void;
+  isSyncing: boolean;
 }
