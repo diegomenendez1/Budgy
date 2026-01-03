@@ -12,8 +12,6 @@ import {
   ArrowRight,
   User
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-
 interface DashboardProps {
   onNavigate: (tab: string) => void;
 }
@@ -22,11 +20,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const {
     activeCycle,
     cycleMetrics,
-    totalDisposableIncome,
-    showAuth,
-    isSyncing
+    totalDisposableIncome
   } = useFinance();
-  const { user } = useAuth();
 
   if (!activeCycle) {
     return (
@@ -61,12 +56,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   } = cycleMetrics;
 
   return (
-    <div className="animate-in space-y-6 pt-4">
-
-      {/* 1. Modern Header */}
-      <div className="flex items-center justify-between mb-2">
+    <div className="space-y-6 pb-20 animate-in pt-4">
+      {/* 1. Header with greeting and date */}
+      <div className="flex justify-between items-start pt-2 px-1">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Resumen</h1>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Hola</h2>
           <div className="flex items-center gap-1.5 mt-1">
             <Calendar size={12} className="text-gray-400" />
             <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">
@@ -74,15 +68,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </p>
           </div>
         </div>
-        <button
-          onClick={showAuth}
-          className="bg-white p-2 rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors"
-        >
-          <User size={20} className={user ? "text-blue-600" : "text-gray-400"} />
-          {isSyncing && (
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
-          )}
-        </button>
       </div>
 
       {/* 2. Primary Status Card */}

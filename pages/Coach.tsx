@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Send, Bot, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
-import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { coachService, ChatMessage } from '../services/coachService';
 
@@ -15,7 +14,7 @@ const QUICK_ACTIONS = [
 ];
 
 export const CoachPage: React.FC = () => {
-    const { user } = useAuth();
+    const user = { id: 'local-user' }; // Dummy for local use
     const { generateDataPacket } = useFinance();
 
     // State
