@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Budget from './pages/Budget';
 import Planning from './pages/Planning';
 import Insights from './pages/Insights';
+import CoachPage from './pages/Coach';
 import FloatingAddButton from './components/FloatingAddButton';
 import { FinanceProvider } from './context/FinanceContext';
 import { AuthProvider } from './context/AuthContext';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
       case 'budget': return <Budget />;
       case 'planning': return <Planning />;
       case 'insights': return <Insights />;
+      case 'coach': return <CoachPage />;
       default: return <Dashboard onNavigate={setCurrentTab} />;
     }
   };

@@ -674,6 +674,82 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.removeItem('savingsGoal');
   };
 
+  // --- AI Context Generation ---
+  const generateDataPacket = (range: 'current_cycle' | 'last_30_days' | 'current_month') => {
+    // 1. Determine Date Range
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
+
+    if (range === 'current_cycle' && activeCycle) {
+      startDate = new Date(activeCycle.startDate);
+      endDate = new Date(activeCycle.endDate);
+    } else if (range === 'last_30_days') {
+      startDate.setDate(now.getDate() - 30);
+    } else if (range === 'current_month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of month
+    }
+
+    // Normalize hours
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    // 2. Filter Transactions
+    const rangeTransactions = transactions.filter(t => {
+      const tDate = new Date(t.date);
+      return tDate >= startDate && tDate <= endDate;
+    });
+
+    // 3. Calculate Aggregates
+    const totalSpent = rangeTransactions
+      .filter(t => t.type === TransactionType.EXPENSE)
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const totalIncome = rangeTransactions
+      .filter(t => t.type === TransactionType.INCOME)
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    // Group by Category
+    const categoryTotals: Record<string, number> = {};
+    rangeTransactions
+      .filter(t => t.type === TransactionType.EXPENSE)
+      .forEach(t => {
+        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+      });
+
+    const topCategories = Object.entries(categoryTotals)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([cat, amount]) => ({ category: cat, amount }));
+
+    // Detect Outliers (Mock logic: > 20% of total spent or > 500)
+    const significantExpenses = rangeTransactions
+      .filter(t => t.type === TransactionType.EXPENSE && t.amount > 500)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5)
+      .map(t => ({ desc: t.description, amount: t.amount, date: t.date }));
+
+    // 4. Construct Packet
+    return {
+      context: range,
+      period: { start: startDate.toISOString(), end: endDate.toISOString() },
+      summary: {
+        totalIncome,
+        totalSpent,
+        net: totalIncome - totalSpent,
+        savingsGoal: activeCycle?.savingsGoal || savingsGoal
+      },
+      topCategories,
+      significantExpenses,
+      budgetStatus: activeCycle ? {
+        remaining: cycleMetrics.remainingBudget,
+        dailyIdeal: cycleMetrics.idealDailyBudget,
+        isOverspending: cycleMetrics.isOverspending
+      } : 'No active cycle'
+    };
+  };
+
   return (
     <FinanceContext.Provider value={{
       transactions,
@@ -706,7 +782,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       showAuth: () => setShowAuthModal(true),
       isSyncing,
-      resetData
+      resetData,
+      generateDataPacket
     }}>
       {children}
 

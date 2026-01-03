@@ -119,4 +119,7 @@ export interface FinancialContextType {
   showAuth: () => void;
   isSyncing: boolean;
   resetData: () => void;
+
+  // AI Coach
+  generateDataPacket: (range: 'current_cycle' | 'last_30_days' | 'current_month') => any;
 }
