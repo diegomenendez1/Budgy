@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { Transaction, RecurringItem, TransactionType } from '../types';
 
-const apiKey = process.env.VITE_GEMINI_API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const analyzeFinances = async (
