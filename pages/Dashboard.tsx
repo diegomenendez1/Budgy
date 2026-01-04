@@ -10,7 +10,9 @@ import {
   ShieldCheck,
   Calendar,
   ArrowRight,
-  User
+  User,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -28,6 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     currency
   } = useFinance();
   const { user } = useAuth();
+  const [isPrivacyMode, setIsPrivacyMode] = React.useState(false);
 
   if (!activeCycle) {
     return (
@@ -93,15 +96,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </p>
           </div>
         </div>
-        <button
-          onClick={showAuth}
-          className="bg-white p-2 rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors"
-        >
-          <User size={20} className={user ? "text-blue-600" : "text-gray-400"} />
-          {isSyncing && (
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+            className="bg-white p-2 rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
+          >
+            {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          <button
+            onClick={showAuth}
+            className="bg-white p-2 rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors"
+          >
+            <User size={20} className={user ? "text-blue-600" : "text-gray-400"} />
+            {isSyncing && (
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 2. Primary Status Card */}
@@ -114,15 +125,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Disponible Real</span>
           <div className="flex items-baseline gap-1 mb-3">
             <span className="text-2xl font-bold text-blue-200/40">{currency === 'EUR' ? '€' : '$'}</span>
-            <span className={`text-6xl font-black tracking-tighter ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'}`}>
-              {Math.abs(Math.round(remainingBudget)).toLocaleString()}
+            <span className={`text-6xl font-black tracking-tighter ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'} ${isPrivacyMode ? 'blur-md select-none' : ''}`}>
+              {isPrivacyMode ? '99,999' : Math.abs(Math.round(remainingBudget)).toLocaleString()}
             </span>
           </div>
 
           <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-md border ${currentSurplus >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-orange-500/10 border-orange-500/20 text-orange-400'}`}>
             {currentSurplus >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
             <span>
-              {currentSurplus > 0 ? '+' : ''}{Math.round(currentSurplus).toLocaleString()} vs. Ideal
+              {currentSurplus > 0 ? '+' : ''}{isPrivacyMode ? '***' : Math.round(currentSurplus).toLocaleString()} vs. Ideal
             </span>
           </div>
         </div>
@@ -178,8 +189,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <Wallet size={24} />
             </div>
             <div>
-              <p className="font-bold text-gray-900 text-sm">Gestionar Ciclo</p>
-              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Presupuesto</p>
+              <p className="font-bold text-gray-900 text-sm">Ver Presupuesto</p>
+              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Detalles</p>
             </div>
           </button>
 

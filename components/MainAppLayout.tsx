@@ -22,7 +22,7 @@ const MainAppLayout: React.FC = () => {
         }
     };
 
-    const showFloatingButton = ['dashboard', 'budget'].includes(currentTab);
+    const showFloatingButton = ['dashboard', 'budget', 'planning', 'insights', 'coach'].includes(currentTab);
 
     return (
         <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">

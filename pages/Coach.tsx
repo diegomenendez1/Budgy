@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Send, Bot, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -29,41 +29,39 @@ export const CoachPage: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initialize Session & History
+    // Initialize Session & History (Local Only)
     useEffect(() => {
-        if (!user) return;
+        // Start with a fresh session ID each time the component mounts (Auto-clear on reload)
+        const newSessionId = crypto.randomUUID();
+        setSessionId(newSessionId);
 
-        const initSession = async () => {
-            setIsLoading(true);
-            try {
-                const id = await coachService.getActiveSession(user.id);
-                setSessionId(id);
-                const history = await coachService.getHistory(id);
-                if (history.length > 0) {
-                    setMessages(history);
-                } else {
-                    setMessages([{
-                        id: 'welcome',
-                        role: 'assistant',
-                        content: '¡Hola! Soy Budgy Coach. Puedo analizar tus finanzas y darte consejos personalizados. ¿En qué te ayudo hoy?',
-                        timestamp: new Date()
-                    }]);
-                }
-            } catch (err) {
-                console.error('Failed to init coach:', err);
-                setError('Error conectando con el asistente.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        initSession();
-    }, [user]);
+        setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            content: '¡Hola! Soy Budgy Coach. Puedo analizar tus finanzas y darte consejos personalizados. ¿En qué te ayudo hoy?',
+            timestamp: new Date()
+        }]);
+    }, []); // Run once on mount
 
     // Auto-scroll
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
     useEffect(scrollToBottom, [messages]);
+
+    // Clear Chat
+    const handleClearChat = () => {
+        if (confirm('¿Quieres borrar el historial de esta conversación?')) {
+            setMessages([{
+                id: 'welcome',
+                role: 'assistant',
+                content: '¡Listo! He olvidado lo anterior. ¿De qué quieres hablar ahora?',
+                timestamp: new Date()
+            }]);
+            // Generate new session ID to clear context in the backend/LLM if applicable
+            setSessionId(crypto.randomUUID());
+        }
+    };
 
     // Handlers
     const handleSend = async (text: string) => {
@@ -142,6 +140,13 @@ export const CoachPage: React.FC = () => {
 
                 {/* Controls */}
                 <div className="flex gap-2">
+                    <button
+                        onClick={handleClearChat}
+                        className="p-2 rounded-full bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        title="Limpiar conversación"
+                    >
+                        <Trash2 size={18} />
+                    </button>
                     <button
                         onClick={() => setPrivacyMode(!privacyMode)}
                         className={`p-2 rounded-full transition-colors ${privacyMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}
