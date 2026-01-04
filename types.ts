@@ -19,6 +19,7 @@ export interface UserSettings extends BaseEntity {
   id: string; // usually 'settings' or user_id
   custom_categories: string[];
   savings_goal: number;
+  currency?: string;
 }
 
 export interface Transaction extends BaseEntity {
@@ -96,10 +97,12 @@ export interface FinancialContextType {
   totalDisposableIncome: number; // Live "Free Money" calculation
   currentSavingsGoal: number;
   setSavingsGoal: (amount: number) => void;
+  setCurrency: (currency: string) => void;
 
   // Cycle Management
   cycles: Cycle[];
   activeCycle: Cycle | null;
+  currency: string;
   createCycle: (endDate: Date, initialBudget: number) => void;
   transferSavingsToBudget: () => void;
 

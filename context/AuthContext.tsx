@@ -17,11 +17,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Safety timeout to prevent infinite loading
+        const timer = setTimeout(() => {
+            console.warn("Auth timed out - forcing UI load");
+            setLoading(false);
+        }, 3000);
+
         // 1. Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
+        }).catch((err) => {
+            console.error("Auth initialization error:", err);
+        }).finally(() => {
             setLoading(false);
+            clearTimeout(timer);
         });
 
         // 2. Listen for auth changes

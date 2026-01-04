@@ -24,56 +24,46 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     cycleMetrics,
     totalDisposableIncome,
     showAuth,
-    isSyncing
+    isSyncing,
+    currency
   } = useFinance();
   const { user } = useAuth();
 
   if (!activeCycle) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[75vh] px-6 text-center animate-in">
-        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg shadow-gray-200/60 mb-6 border border-white/50">
-          <Wallet size={32} className="text-gray-900" strokeWidth={1.5} />
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center animate-in relative overflow-hidden">
+        {/* Background Decor */}
+        <div className="absolute top-[-10%] right-[-20%] w-[80%] h-[40%] bg-blue-100/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-20%] w-[80%] h-[40%] bg-indigo-100/40 rounded-full blur-3xl pointer-events-none" />
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Bienvenido a Budgy</h2>
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed max-w-xs mx-auto">
-          Gestiona tus finanzas de forma inteligente.
-        </p>
-
-        <div className="flex flex-col gap-4 w-full max-w-xs">
-          {/* Option A: Recovery / Login */}
-          <button
-            onClick={showAuth}
-            className="group relative bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all text-left flex items-center gap-4"
-          >
-            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
-              <User size={20} className="text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <span className="block font-bold text-gray-900 text-sm">Ya tengo cuenta</span>
-              <span className="text-xs text-gray-500">Recuperar mis datos</span>
-            </div>
-          </button>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="flex-shrink-0 mx-4 text-gray-300 text-xs font-medium uppercase">O empieza de cero</span>
-            <div className="flex-grow border-t border-gray-200"></div>
+        <div className="relative z-10 w-full max-w-sm">
+          <div className="w-24 h-24 bg-gradient-to-tr from-white to-blue-50 rounded-[2rem] flex items-center justify-center shadow-xl shadow-blue-900/5 mb-8 border border-white mx-auto transform rotate-[-5deg]">
+            <Wallet size={40} className="text-blue-600" strokeWidth={1.5} />
           </div>
 
-          {/* Option B: New User */}
+          <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Tu Dashboard <br /><span className="text-blue-600">te espera</span></h2>
+          <p className="text-slate-500 text-base mb-10 leading-relaxed font-medium">
+            Para ver tus finanzas aquí, necesitas activar tu primer ciclo mensual.
+          </p>
+
           <button
             onClick={() => onNavigate('budget')}
-            className="group relative bg-black text-white p-4 rounded-2xl shadow-xl shadow-gray-900/10 active:scale-95 transition-all text-left flex items-center gap-4"
+            className="w-full group relative bg-slate-900 text-white p-5 rounded-2xl shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-between overflow-hidden"
           >
-            <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center shrink-0 group-hover:bg-gray-700 transition-colors">
-              <ArrowRight size={20} className="text-white" />
+            <div className="relative z-10 flex flex-col items-start">
+              <span className="font-bold text-lg">Crear Ciclo</span>
+              <span className="text-xs text-slate-400 font-medium mt-0.5">Empezar de cero</span>
             </div>
-            <div className="flex-1">
-              <span className="block font-bold text-white text-sm">Soy nuevo</span>
-              <span className="text-xs text-gray-400">Crear primer presupuesto</span>
+            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <ArrowRight size={24} className="text-white" />
             </div>
           </button>
+
+          <div className="mt-8">
+            <button onClick={showAuth} className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+              ¿Ya tienes datos? Inicia Sesión
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -84,8 +74,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     remainingBudget,
     currentSurplus,
     isOverspending,
-    daysPassed
+    daysPassed,
+    spentThisCycle
   } = cycleMetrics;
+
+  const hasActivity = spentThisCycle > 0;
 
   return (
     <div className="space-y-6 pb-20 animate-in pt-4">
@@ -120,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <div className="relative z-10 flex flex-col items-center justify-center">
           <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Disponible Real</span>
           <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-2xl font-bold text-blue-200/40">$</span>
+            <span className="text-2xl font-bold text-blue-200/40">{currency === 'EUR' ? '€' : '$'}</span>
             <span className={`text-6xl font-black tracking-tighter ${remainingBudget < 0 ? 'text-amber-400' : 'text-white'}`}>
               {Math.abs(Math.round(remainingBudget)).toLocaleString()}
             </span>
@@ -135,28 +128,43 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* 3. Status Band (Refined) */}
-      <div className={`rounded-3xl p-5 flex items-center gap-5 border transition-all duration-500 shadow-sm bg-white
-        ${isOverspending ? 'border-orange-100' : currentSurplus > (totalDisposableIncome * 0.1) ? 'border-green-100' : 'border-gray-100'}`}
-      >
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
-          ${isOverspending ? 'bg-orange-50 text-orange-500' : currentSurplus > (totalDisposableIncome * 0.1) ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-500'}`}
-        >
-          {isOverspending ? <AlertTriangle size={24} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={24} /> : <CheckCircle2 size={24} />}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-bold text-gray-900 text-base mb-0.5">
-            {isOverspending ? 'Ajusta el ritmo' : currentSurplus > (totalDisposableIncome * 0.1) ? '¡Vas excelente!' : 'Todo bajo control'}
-          </h3>
-          <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            {isOverspending
-              ? 'Trata de reducir gastos variables hoy.'
-              : currentSurplus > (totalDisposableIncome * 0.1)
-                ? 'Estás ahorrando más de lo planeado.'
-                : 'Tus gastos están alineados con tu meta.'}
+      {/* Empty State: Nudge to Add First Transaction */}
+      {!hasActivity && (
+        <div className="bg-white border-2 border-dashed border-blue-200 rounded-3xl p-6 text-center">
+          <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <span className="text-2xl">👇</span>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 mb-1">¡Estrena tu mes!</h3>
+          <p className="text-slate-500 text-sm mb-0">
+            Toca el botón <span className="font-bold text-black">+</span> para registrar tu primer gasto.
           </p>
         </div>
-      </div>
+      )}
+
+      {/* 3. Status Band (Refined) */}
+      {hasActivity && (
+        <div className={`rounded-3xl p-5 flex items-center gap-5 border transition-all duration-500 shadow-sm bg-white
+        ${isOverspending ? 'border-orange-100' : currentSurplus > (totalDisposableIncome * 0.1) ? 'border-green-100' : 'border-gray-100'}`}
+        >
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
+          ${isOverspending ? 'bg-orange-50 text-orange-500' : currentSurplus > (totalDisposableIncome * 0.1) ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-500'}`}
+          >
+            {isOverspending ? <AlertTriangle size={24} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={24} /> : <CheckCircle2 size={24} />}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900 text-base mb-0.5">
+              {isOverspending ? 'Ajusta el ritmo' : currentSurplus > (totalDisposableIncome * 0.1) ? '¡Vas excelente!' : 'Todo bajo control'}
+            </h3>
+            <p className="text-xs text-gray-500 font-medium leading-relaxed">
+              {isOverspending
+                ? 'Trata de reducir gastos variables hoy.'
+                : currentSurplus > (totalDisposableIncome * 0.1)
+                  ? 'Estás ahorrando más de lo planeado.'
+                  : 'Tus gastos están alineados con tu meta.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 4. Shortcuts Grid (Premium) */}
       <div className="px-1">

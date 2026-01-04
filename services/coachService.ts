@@ -36,8 +36,21 @@ export const coachService = {
                 throw new Error(`AI_ERROR: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            return data.text; // Expecting { text: "..." } from n8n
+            const text = await response.text();
+            console.log('Coach Raw Response:', text);
+
+            if (!text) {
+                return "El asistente recibió tu mensaje pero no envió respuesta (Body vacío). Revisa el nodo Webhook en n8n.";
+            }
+
+            try {
+                const data = JSON.parse(text);
+                // Robust parsing
+                return data.text || data.message || data.output || (typeof data === 'string' ? data : JSON.stringify(data));
+            } catch (e) {
+                // If response is not JSON (e.g. plain text), return it directly
+                return text;
+            }
         } catch (error) {
             console.error('Error sending message to Coach:', error);
             throw error;

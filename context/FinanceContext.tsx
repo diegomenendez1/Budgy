@@ -60,6 +60,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     getSavedData<string[]>('customCategories', [])
   );
 
+  const [currency, setCurrencyState] = useState<string>(() =>
+    getSavedData<string>('currency', 'USD')
+  );
+
   // --- Effects (Auto-save) ---
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
@@ -81,6 +85,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem('customCategories', JSON.stringify(customCategories));
   }, [customCategories]);
 
+  useEffect(() => {
+    localStorage.setItem('currency', currency);
+  }, [currency]);
+
   // --- Sync State ---
   const { user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -89,7 +97,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [pendingSyncResolver, setPendingSyncResolver] = useState<((choice: 'UPLOAD' | 'DOWNLOAD' | 'MERGE') => void) | null>(null);
 
   // --- Actions ---
-  const addTransaction = (t: Omit<Transaction, 'id'>) => {
+  const addTransaction = async (t: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...t,
       id: generateUUID(),
@@ -97,43 +105,55 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       updated_at: new Date().toISOString()
     };
     setTransactions(prev => [newTransaction, ...prev]);
-  };
 
-  const updateTransaction = (updatedTx: Transaction) => {
-    const toUpdate = {
-      ...updatedTx,
-      updated_at: new Date().toISOString(),
-      owner_id: user?.id || updatedTx.owner_id // Preserve or set owner
-    };
-    setTransactions(prev => prev.map(t => t.id === toUpdate.id ? toUpdate : t));
-  };
-
-  const deleteTransaction = (id: string) => {
-    // Soft delete for sync if logged in, otherwise hard delete (or soft delete always?)
-    // For local storage we often just remove, but for sync we need to track deletions.
-    // Solution: We keep deleted items in a separate "deleted" list OR mark as deleted.
-    // To keep it simple for now without huge refactor, we will just remove from local state
-    // AND push a delete command to Supabase if online. 
-    // Ideally we should have a `deletedTransactions` state.
-    // Let's mark as is_deleted=true but filter them out from UI? 
-    // Existing UI expects clean lists.
-    // Approach: Soft delete. Filter out in UI.
-    // BUT: Legacy components might break if they iterate over everything.
-    // SAFE APPROACH: We remove from "transactions" state, but keep a "pendingDeletes" queue or similar?
-    // User requested "Conflict rule: latest change wins".
-    // Let's actually CHANGE the state to include deleted ones but filter them in getters? No, too risky for existing UI.
-    // Let's use a "deleted_records" table in Supabase or a separate state here.
-    // Simplest: We won't support offline-delete-sync perfectly yet. 
-    // If online: delete from Supabase.
-    // If offline: Queue it.
-    // Let's implement a simple "Hard Delete" locally and try to delete on Supabase.
-    setTransactions(prev => prev.filter(t => t.id !== id));
     if (user) {
-      supabase.from('transactions').delete().eq('id', id).eq('owner_id', user.id).then();
+      const dbTransaction = {
+        id: newTransaction.id,
+        description: newTransaction.description,
+        amount: newTransaction.amount,
+        type: newTransaction.type,
+        date: newTransaction.date,
+        category: newTransaction.category,
+        is_exceptional: newTransaction.isExceptional,
+        owner_id: newTransaction.owner_id,
+        updated_at: newTransaction.updated_at
+      };
+      await supabase.from('transactions').insert(dbTransaction);
     }
   };
 
-  const addRecurringItem = (item: Omit<RecurringItem, 'id'>) => {
+  const updateTransaction = async (updatedTx: Transaction) => {
+    const toUpdate = {
+      ...updatedTx,
+      updated_at: new Date().toISOString(),
+      owner_id: user?.id || updatedTx.owner_id
+    };
+    setTransactions(prev => prev.map(t => t.id === toUpdate.id ? toUpdate : t));
+
+    if (user) {
+      const dbTransaction = {
+        id: toUpdate.id,
+        description: toUpdate.description,
+        amount: toUpdate.amount,
+        type: toUpdate.type,
+        date: toUpdate.date,
+        category: toUpdate.category,
+        is_exceptional: toUpdate.isExceptional,
+        owner_id: toUpdate.owner_id,
+        updated_at: toUpdate.updated_at
+      };
+      await supabase.from('transactions').upsert(dbTransaction);
+    }
+  };
+
+  const deleteTransaction = async (id: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    if (user) {
+      await supabase.from('transactions').delete().eq('id', id).eq('owner_id', user.id);
+    }
+  };
+
+  const addRecurringItem = async (item: Omit<RecurringItem, 'id'>) => {
     const newItem = {
       ...item,
       id: generateUUID(),
@@ -141,23 +161,42 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       updated_at: new Date().toISOString()
     };
     setRecurringItems(prev => [...prev, newItem]);
+
+    if (user) {
+      await supabase.from('recurring_items').insert(newItem);
+    }
   };
 
-  const updateRecurringItem = (updated: RecurringItem) => {
+  const updateRecurringItem = async (updated: RecurringItem) => {
     const toUpdate = { ...updated, updated_at: new Date().toISOString() };
     setRecurringItems(prev => prev.map(i => i.id === toUpdate.id ? toUpdate : i));
+
+    if (user) {
+      await supabase.from('recurring_items').upsert(toUpdate);
+    }
   }
 
-  const deleteRecurringItem = (id: string) => {
+  const deleteRecurringItem = async (id: string) => {
     setRecurringItems(prev => prev.filter(i => i.id !== id));
     if (user) {
-      supabase.from('recurring_items').delete().eq('id', id).eq('owner_id', user.id).then();
+      await supabase.from('recurring_items').delete().eq('id', id).eq('owner_id', user.id);
     }
   };
 
   const setSavingsGoal = (amount: number) => {
     setSavingsGoalState(amount);
-    // Sync settings/goal
+  };
+
+  const setCurrency = async (curr: string) => {
+    setCurrencyState(curr);
+    if (user) {
+      const now = new Date().toISOString();
+      await supabase.from('user_settings').upsert({
+        owner_id: user.id,
+        currency: curr,
+        updated_at: now
+      }, { onConflict: 'owner_id' });
+    }
   };
 
   // --- Categories Management ---
@@ -226,16 +265,41 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       // Default merge if no conflict or no legacy data
-      if (!resolution) resolution = 'MERGE';
+      if (!resolution) resolution = 'DOWNLOAD';
 
       if (resolution === 'DOWNLOAD') {
-        // Replace local with cloud
-        if (cloudTx) setTransactions(cloudTx);
+        // Replace local with cloud, mapping snake_case to camelCase
+        if (cloudTx) {
+          setTransactions(cloudTx.map((t: any) => ({
+            id: t.id,
+            description: t.description,
+            amount: t.amount,
+            type: t.type,
+            date: t.date,
+            category: t.category,
+            isExceptional: t.is_exceptional,
+            owner_id: t.owner_id,
+            updated_at: t.updated_at
+          })));
+        }
         if (cloudRec) setRecurringItems(cloudRec);
-        if (cloudCycles) setCycles(cloudCycles);
+        if (cloudCycles) {
+          setCycles(cloudCycles.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            startDate: c.start_date,
+            endDate: c.end_date,
+            initialBudget: c.initial_budget,
+            savingsGoal: c.savings_goal,
+            isActive: c.is_active,
+            owner_id: c.owner_id,
+            updated_at: c.updated_at
+          })));
+        }
         if (cloudSettings) {
           setCustomCategories(cloudSettings.custom_categories || []);
           setSavingsGoalState(cloudSettings.savings_goal || 0);
+          setCurrencyState(cloudSettings.currency || 'USD');
         }
       }
       else if (resolution === 'UPLOAD') {
@@ -253,6 +317,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           owner_id: user.id,
           custom_categories: customCategories,
           savings_goal: savingsGoal,
+          currency: currency,
           updated_at: new Date().toISOString()
         }, { onConflict: 'owner_id' });
 
@@ -628,7 +693,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
 
   // --- Create Cycle ---
-  const createCycle = (endDate: Date, customInitialBudget: number) => {
+  const createCycle = async (endDate: Date, customInitialBudget: number) => {
     // 1. Deactivate current cycle
     const updatedCycles = cycles.map(c => ({ ...c, isActive: false }));
 
@@ -656,8 +721,18 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setCycles([...updatedCycles, newCycle]);
 
     if (user) {
-      // Auto-upload new cycle if online
-      supabase.from('cycles').upsert([...updatedCycles, newCycle].map(c => ({ ...c, owner_id: user.id, updated_at: new Date().toISOString() }))).then();
+      const dbCycles = [...updatedCycles, newCycle].map(c => ({
+        id: c.id,
+        name: c.name,
+        start_date: c.startDate,
+        end_date: c.endDate,
+        initial_budget: c.initialBudget,
+        savings_goal: c.savingsGoal,
+        is_active: c.isActive,
+        owner_id: user.id,
+        updated_at: new Date().toISOString()
+      }));
+      await supabase.from('cycles').upsert(dbCycles);
     }
   };
 
@@ -704,11 +779,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   // --- Reset Data (Logout cleanup) ---
   const resetData = () => {
     // 1. Clear State
+    // 1. Clear State
     setTransactions([]);
     setRecurringItems([]);
     setCycles([]);
     setCustomCategories([]);
     setSavingsGoalState(0);
+    setCurrencyState('USD');
 
     // 2. Clear Local Storage
     localStorage.removeItem('transactions');
@@ -716,6 +793,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.removeItem('cycles');
     localStorage.removeItem('customCategories');
     localStorage.removeItem('savingsGoal');
+    localStorage.removeItem('currency');
   };
 
   // --- AI Context Generation ---
@@ -810,9 +888,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       totalDisposableIncome,
       currentSavingsGoal: savingsGoal,
       setSavingsGoal,
+      setCurrency,
 
       cycles,
       activeCycle,
+      currency,
       createCycle,
       transferSavingsToBudget,
 

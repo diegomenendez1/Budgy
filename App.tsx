@@ -1,59 +1,81 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import TabBar from './components/TabBar';
-import Dashboard from './pages/Dashboard';
-import Budget from './pages/Budget';
-import Planning from './pages/Planning';
-import Insights from './pages/Insights';
-import CoachPage from './pages/Coach';
-import FloatingAddButton from './components/FloatingAddButton';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
-import { AuthProvider } from './context/AuthContext';
+import MainAppLayout from './components/MainAppLayout';
+import Welcome from './pages/Welcome';
+import Onboarding from './pages/Onboarding';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+// Loading Component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center">
+    <div className="animate-pulse flex flex-col items-center">
+      <div className="w-12 h-12 bg-blue-500 rounded-full mb-4"></div>
+      <div className="text-slate-400 font-medium">Cargando Budgy...</div>
+    </div>
+  </div>
+);
+
+// Route Guards
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <LoadingScreen />;
+
+  if (!user) {
+    return <Navigate to="/welcome" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppContent = () => {
+  return (
+    <Routes>
+      <Route path="/welcome" element={<PublicRoute><Welcome /></PublicRoute>} />
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+
+      {/* Protected Routes */}
+      <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
+
+      {/* Redirect root to dashboard (which handles auth check) or welcome */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Protected Routes */}
+      <Route path="/*" element={
+        <PrivateRoute>
+          <MainAppLayout />
+        </PrivateRoute>
+      } />
+    </Routes>
+  );
+};
 
 const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState('dashboard');
-
-  const renderPage = () => {
-    switch (currentTab) {
-      case 'dashboard': return <Dashboard onNavigate={setCurrentTab} />;
-      case 'budget': return <Budget />;
-      case 'planning': return <Planning />;
-      case 'insights': return <Insights />;
-      case 'coach': return <CoachPage />;
-      default: return <Dashboard onNavigate={setCurrentTab} />;
-    }
-  };
-
-  // Mostrar el botón flotante solo en Inicio y Presupuesto
-  const showFloatingButton = ['dashboard', 'budget'].includes(currentTab);
-
   return (
-    <AuthProvider>
-      <FinanceProvider>
-        <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
-          <main className="max-w-md mx-auto min-h-screen relative">
-            {/* Content Wrapper with Safe Area logic */}
-            <div className="pt-safe pb-safe-nav px-5">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentTab}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                >
-                  {renderPage()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </main>
-
-          {showFloatingButton && <FloatingAddButton />}
-
-          <TabBar currentTab={currentTab} setTab={setCurrentTab} />
-        </div>
-      </FinanceProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <FinanceProvider>
+          <AppContent />
+        </FinanceProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 

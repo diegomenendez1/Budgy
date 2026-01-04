@@ -106,8 +106,7 @@ export const CoachPage: React.FC = () => {
 
         } catch (err: any) {
             console.error('Chat Error:', err);
-            setError('No pude conectar con el cerebro de IA. Verifica tu conexión o intenta más tarde.');
-            // Optional: Remove user message if failed? Or allow retry.
+            setError(err.message || 'No pude conectar con el cerebro de IA.');
         } finally {
             setIsLoading(false);
         }
