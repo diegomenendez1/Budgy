@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { coachService, ChatMessage } from '../services/coachService';
 
+import ReactMarkdown from 'react-markdown';
+
 type AnalysisRange = 'current_cycle' | 'last_30_days' | 'current_month';
 
 const QUICK_ACTIONS = [
@@ -199,7 +201,11 @@ export const CoachPage: React.FC = () => {
                                     <span className="text-xs font-bold uppercase tracking-wider">Coach</span>
                                 </div>
                             )}
-                            {msg.content}
+                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-li:my-1">
+                                <ReactMarkdown>
+                                    {msg.content}
+                                </ReactMarkdown>
+                            </div>
                         </div>
                     </motion.div>
                 ))}

@@ -860,7 +860,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         totalIncome,
         totalSpent,
         net: totalIncome - totalSpent,
-        savingsGoal: activeCycle?.savingsGoal || savingsGoal
+        savingsGoal: activeCycle?.savingsGoal || savingsGoal,
+        currency: currency
       },
       topCategories,
       significantExpenses,
