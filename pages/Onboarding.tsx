@@ -87,7 +87,7 @@ const Onboarding: React.FC = () => {
                             className="flex-1 flex flex-col"
                         >
                             <h2 className="text-3xl font-bold text-slate-900 mb-2">Hola, {userName} 👋</h2>
-                            <p className="text-slate-500 mb-8">Configuremos tu moneda para empezar.</p>
+                            <p className="text-slate-500 mb-8">Hemos seleccionado <b>{currency}</b> por ti. Puedes cambiarlo ahora o más tarde en ajustes.</p>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {['USD', 'MXN', 'EUR', 'COP'].map(c => (

@@ -189,9 +189,10 @@ const FloatingAddButton: React.FC = () => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsMagicMode(!isMagicMode)}
-                                    className={`p-2 rounded-xl transition-all ${isMagicMode ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400 hover:text-indigo-500'}`}
+                                    className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isMagicMode ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100'}`}
                                 >
-                                    <Sparkles size={20} />
+                                    <Sparkles size={20} className={isMagicMode ? 'animate-pulse' : ''} />
+                                    <span className="text-xs font-bold uppercase tracking-wider">{isMagicMode ? 'Modo Magia' : 'Magia'}</span>
                                 </button>
                                 <h3 className="text-xl font-bold text-gray-900">
                                     {isMagicMode ? 'Registro Inteligente' : (txType === TransactionType.INCOME ? 'Nuevo Ingreso' : 'Nuevo Gasto')}
@@ -388,7 +389,10 @@ const FloatingAddButton: React.FC = () => {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`p-2 rounded-full ${isExceptional ? 'bg-amber-100 text-amber-600' : 'bg-gray-200 text-gray-500'}`}><AlertTriangle size={18} /></div>
-                                                <div><p className={`text-sm font-bold ${isExceptional ? 'text-amber-900' : 'text-gray-700'}`}>Gasto Excepcional</p></div>
+                                                <div>
+                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900' : 'text-gray-700'}`}>Gasto Único</p>
+                                                    <p className="text-[10px] text-amber-600/60 font-medium">No afecta tu ritmo diario</p>
+                                                </div>
                                             </div>
                                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300'}`}>{isExceptional && <div className="w-2 h-2 bg-white rounded-full" />}</div>
                                         </div>
@@ -405,7 +409,7 @@ const FloatingAddButton: React.FC = () => {
                         )}
 
                     </div>
-                </div>
+                </div >
             )}
         </>
     );
