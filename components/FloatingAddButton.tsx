@@ -42,9 +42,8 @@ const FloatingAddButton: React.FC = () => {
 
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (!amount) return;
-
         const numAmount = parseFloat(amount);
+        if (isNaN(numAmount) || numAmount <= 0) return;
 
         // Check for Overspending Logic
         if (
@@ -288,6 +287,8 @@ const FloatingAddButton: React.FC = () => {
                                             placeholder="0"
                                             autoFocus
                                             inputMode="decimal"
+                                            min="0.01"
+                                            required
                                         />
                                     </div>
                                 </div>

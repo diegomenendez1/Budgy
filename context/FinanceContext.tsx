@@ -9,6 +9,14 @@ import { SyncConflictModal } from '../components/SyncConflictModal';
 
 const FinanceContext = createContext<FinancialContextType | undefined>(undefined);
 
+type PendingOperation = {
+  id: string;
+  type: 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT';
+  table: 'transactions' | 'recurring_items' | 'cycles' | 'user_settings';
+  data: any;
+  timestamp: string;
+};
+
 export const useFinance = () => {
   const context = useContext(FinanceContext);
   if (!context) throw new Error('useFinance must be used within a FinanceProvider');
@@ -76,6 +84,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     getSavedData<string>('currency', 'USD')
   );
 
+  const [pendingOperations, setPendingOperations] = useState<PendingOperation[]>(() =>
+    getSavedData<PendingOperation[]>('pendingOperations', [])
+  );
+
   // --- Effects (Auto-save) ---
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
@@ -100,6 +112,20 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     localStorage.setItem('currency', currency);
   }, [currency]);
+
+  useEffect(() => {
+    localStorage.setItem('pendingOperations', JSON.stringify(pendingOperations));
+  }, [pendingOperations]);
+
+  // --- Auto-sync on reconnection ---
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('App back online, triggering sync...');
+      syncWithSupabase();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [user, pendingOperations]); // depends on these to ensure it's up to date
 
   // --- Sync State ---
   const { user } = useAuth();
@@ -130,7 +156,20 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         owner_id: newTransaction.owner_id,
         updated_at: newTransaction.updated_at
       };
-      await supabase.from('transactions').insert(dbTransaction);
+
+      try {
+        const { error } = await supabase.from('transactions').insert(dbTransaction);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing transaction insert due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'INSERT',
+          table: 'transactions',
+          data: dbTransaction,
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
@@ -154,14 +193,39 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         owner_id: toUpdate.owner_id,
         updated_at: toUpdate.updated_at
       };
-      await supabase.from('transactions').upsert(dbTransaction);
+
+      try {
+        const { error } = await supabase.from('transactions').upsert(dbTransaction);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing transaction update due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'UPSERT',
+          table: 'transactions',
+          data: dbTransaction,
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
   const deleteTransaction = async (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
     if (user) {
-      await supabase.from('transactions').delete().eq('id', id).eq('owner_id', user.id);
+      try {
+        const { error } = await supabase.from('transactions').delete().eq('id', id).eq('owner_id', user.id);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing transaction delete due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'DELETE',
+          table: 'transactions',
+          data: { id, owner_id: user.id },
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
@@ -175,7 +239,19 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setRecurringItems(prev => [...prev, newItem]);
 
     if (user) {
-      await supabase.from('recurring_items').insert(newItem);
+      try {
+        const { error } = await supabase.from('recurring_items').insert(newItem);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing recurring item insert due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'INSERT',
+          table: 'recurring_items',
+          data: newItem,
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
@@ -184,14 +260,38 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setRecurringItems(prev => prev.map(i => i.id === toUpdate.id ? toUpdate : i));
 
     if (user) {
-      await supabase.from('recurring_items').upsert(toUpdate);
+      try {
+        const { error } = await supabase.from('recurring_items').upsert(toUpdate);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing recurring item update due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'UPSERT',
+          table: 'recurring_items',
+          data: toUpdate,
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   }
 
   const deleteRecurringItem = async (id: string) => {
     setRecurringItems(prev => prev.filter(i => i.id !== id));
     if (user) {
-      await supabase.from('recurring_items').delete().eq('id', id).eq('owner_id', user.id);
+      try {
+        const { error } = await supabase.from('recurring_items').delete().eq('id', id).eq('owner_id', user.id);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing recurring item delete due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'DELETE',
+          table: 'recurring_items',
+          data: { id, owner_id: user.id },
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
@@ -265,11 +365,41 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setIsSyncing(true);
 
     try {
+      // 0. Process Pending Queue first
+      if (pendingOperations.length > 0) {
+        const stillPending: PendingOperation[] = [];
+        for (const op of pendingOperations) {
+          try {
+            let error;
+            if (op.type === 'DELETE') {
+              const { error: err } = await supabase.from(op.table).delete().eq('id', op.data.id).eq('owner_id', user.id);
+              error = err;
+            } else {
+              const { error: err } = await supabase.from(op.table).upsert(op.data);
+              error = err;
+            }
+            if (error) throw error;
+          } catch (err) {
+            console.error(`Failed to process queued operation ${op.id}`, err);
+            stillPending.push(op);
+          }
+        }
+        setPendingOperations(stillPending);
+        if (stillPending.length > 0) {
+          // If queue failed to clear, maybe network is still flaky, but let's try to proceed with GET sync
+          console.warn('Some operations are still pending after sync attempt.');
+        }
+      }
+
       // 1. Fetch all cloud data
       const { data: cloudTx } = await supabase.from('transactions').select('*').eq('owner_id', user.id);
       const { data: cloudRec } = await supabase.from('recurring_items').select('*').eq('owner_id', user.id);
       const { data: cloudCycles } = await supabase.from('cycles').select('*').eq('owner_id', user.id);
-      const { data: cloudSettings } = await supabase.from('user_settings').select('*').eq('owner_id', user.id).single();
+      const { data: cloudSettings, error: settingsError } = await supabase.from('user_settings').select('*').eq('owner_id', user.id).maybeSingle();
+
+      if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 is code for 'no rows' in some versions, but maybeSingle handles it. Still, robustness.
+        console.warn('Error fetching settings:', settingsError);
+      }
 
       const cloudHasData = (cloudTx?.length || 0) > 0 || (cloudRec?.length || 0) > 0;
       const localHasData = transactions.length > 0 || recurringItems.length > 0;
@@ -455,6 +585,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     } catch (err) {
       console.error('Sync failed', err);
+      // Optional: Add a retry mechanism or alert user
     } finally {
       setIsSyncing(false);
     }
@@ -579,7 +710,20 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         owner_id: user.id,
         updated_at: new Date().toISOString()
       }));
-      await supabase.from('cycles').upsert(dbCycles);
+
+      try {
+        const { error } = await supabase.from('cycles').upsert(dbCycles);
+        if (error) throw error;
+      } catch (err) {
+        console.warn('Queueing cycles upsert due to error:', err);
+        setPendingOperations(prev => [...prev, {
+          id: generateUUID(),
+          type: 'UPSERT',
+          table: 'cycles',
+          data: dbCycles,
+          timestamp: new Date().toISOString()
+        }]);
+      }
     }
   };
 
