@@ -37,6 +37,7 @@ export interface RecurringItem extends BaseEntity {
   description: string;
   amount: number;
   type: TransactionType;
+  category?: string; // Optional category for organization
   // Installment / BNPL logic
   isInstallment?: boolean;
   totalInstallments?: number; // e.g., 3, 6, 12

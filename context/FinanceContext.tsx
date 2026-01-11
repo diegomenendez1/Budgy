@@ -536,7 +536,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
         return null;
       })
-      .filter((i): i is nonNullable => i !== null); // Filter out nulls
+      .filter((i): i is NonNullable<typeof i> => i !== null); // Filter out nulls
   }, [recurringItems]);
 
   // --- Create Cycle ---
