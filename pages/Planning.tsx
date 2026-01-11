@@ -102,7 +102,7 @@ const Planning: React.FC = () => {
     <div className="animate-in pt-2">
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Planificación</h1>
-        <p className="text-gray-500 text-sm font-medium">Diseña tu mes ideal</p>
+        <p className="text-gray-700 text-sm font-medium">Diseña tu mes ideal</p>
       </header>
 
       {/* 1. Dashboard Math Panel */}
@@ -113,11 +113,11 @@ const Planning: React.FC = () => {
         <div className="relative z-10 pb-2">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Resultado Final</p>
+              <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest mb-1">Resultado Final</p>
               <h2 className={`text-4xl font-bold tracking-tight ${freeMoney < 0 ? 'text-red-400' : 'text-white'}`}>
                 ${freeMoney.toLocaleString()}
               </h2>
-              <p className="text-gray-400 text-xs font-medium mt-1">Disponible para gastar (Variable)</p>
+              <p className="text-gray-600 text-xs font-medium mt-1">Disponible para gastar (Variable)</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10 backdrop-blur-sm">
               <CheckCircle2 className={freeMoney < 0 ? 'text-red-400' : 'text-green-400'} size={24} />
@@ -197,7 +197,7 @@ const Planning: React.FC = () => {
             })}
             {incomes.length === 0 && (
               <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
-                <p className="text-gray-400 text-xs font-bold">Sin ingresos registrados</p>
+                <p className="text-gray-600 text-xs font-bold">Sin ingresos registrados</p>
               </div>
             )}
           </div>
@@ -229,7 +229,7 @@ const Planning: React.FC = () => {
             })}
             {expenses.length === 0 && (
               <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
-                <p className="text-gray-400 text-xs font-bold">Sin gastos fijos registrados</p>
+                <p className="text-gray-600 text-xs font-bold">Sin gastos fijos registrados</p>
               </div>
             )}
           </div>
@@ -245,7 +245,7 @@ const Planning: React.FC = () => {
               <h3 className="text-xl font-bold text-gray-900">
                 {editingItem ? 'Editar' : 'Nuevo'} {modalType === TransactionType.INCOME ? 'Ingreso' : 'Gasto'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500">
+              <button onClick={() => setIsModalOpen(false)} aria-label="Cerrar modal" className="bg-gray-100 p-2 rounded-full text-gray-700">
                 <X size={20} />
               </button>
             </div>
@@ -260,7 +260,7 @@ const Planning: React.FC = () => {
                 autoFocus
               />
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-bold">$</span>
                 <input
                   type="number"
                   value={amount}
@@ -274,7 +274,7 @@ const Planning: React.FC = () => {
               {/* Category Selector */}
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
-                  <Tag size={14} className="text-gray-400" />
+                  <Tag size={14} className="text-gray-600" />
                   <span className="text-sm font-semibold text-gray-600">Categoría (opcional)</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -288,7 +288,7 @@ const Planning: React.FC = () => {
                         onClick={() => setCategory(isSelected ? '' : cat)}
                         className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${isSelected
                           ? `${catColors.bg} ${catColors.text} ${catColors.border} ring-2 ring-offset-1 ring-gray-300`
-                          : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'}`}
                       >
                         {cat}
                       </button>

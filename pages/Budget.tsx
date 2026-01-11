@@ -199,18 +199,18 @@ const Budget: React.FC = () => {
       <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4 relative z-10">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-900">Nuevo Ciclo</h3>
-          <button onClick={() => setIsCycleModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500">
+          <button onClick={() => setIsCycleModalOpen(false)} aria-label="Cerrar modal" className="bg-gray-100 p-2 rounded-full text-gray-700">
             <X size={20} />
           </button>
         </div>
 
-        <p className="text-gray-500 text-sm mb-6">
+        <p className="text-gray-700 text-sm mb-6">
           El ciclo comenzará hoy. Configura cuándo termina y tu presupuesto inicial.
         </p>
 
         <div className="space-y-6 mb-8">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Mes de Cierre</label>
+            <label className="block text-xs font-bold uppercase text-gray-600 mb-2">Mes de Cierre</label>
             <div className="grid grid-cols-3 gap-2">
               {months.map((m, i) => (
                 <button
@@ -224,7 +224,7 @@ const Budget: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Año</label>
+            <label className="block text-xs font-bold uppercase text-gray-600 mb-2">Año</label>
             <div className="flex gap-2">
               {years.map(y => (
                 <button
@@ -240,9 +240,9 @@ const Budget: React.FC = () => {
 
           {/* Initial Budget Input */}
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Presupuesto Inicial</label>
+            <label className="block text-xs font-bold uppercase text-gray-600 mb-2">Presupuesto Inicial</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">$</span>
               <input
                 type="number"
                 value={initialBudgetInput}
@@ -253,7 +253,7 @@ const Budget: React.FC = () => {
                 inputMode="decimal"
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-2 ml-1">
+            <p className="text-[10px] text-gray-600 mt-2 ml-1">
               Sugerido según tu Planificación (${totalDisposableIncome.toLocaleString()}). Puedes editarlo si tienes saldo anterior.
             </p>
           </div>
@@ -275,7 +275,7 @@ const Budget: React.FC = () => {
       <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden animate-in sm:m-4">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-900">Editar Transacción</h3>
-          <button onClick={() => setIsEditModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500">
+          <button onClick={() => setIsEditModalOpen(false)} aria-label="Cerrar modal" className="bg-gray-100 p-2 rounded-full text-gray-700">
             <X size={20} />
           </button>
         </div>
@@ -287,23 +287,23 @@ const Budget: React.FC = () => {
             <button
               type="button"
               onClick={() => setEditType(TransactionType.EXPENSE)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.EXPENSE ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.EXPENSE ? 'bg-white text-red-600 shadow-sm' : 'text-gray-700'}`}
             >
               <ArrowUp size={16} /> Gasto
             </button>
             <button
               type="button"
               onClick={() => setEditType(TransactionType.INCOME)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.INCOME ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.INCOME ? 'bg-white text-green-600 shadow-sm' : 'text-gray-700'}`}
             >
               <ArrowDown size={16} /> Ingreso
             </button>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-500 mb-1">Monto</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Monto</label>
             <div className="relative">
-              <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${editType === TransactionType.INCOME ? 'text-green-500' : 'text-gray-400'}`}>$</span>
+              <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${editType === TransactionType.INCOME ? 'text-green-500' : 'text-gray-600'}`}>$</span>
               <input
                 type="number"
                 value={editAmount}
@@ -316,7 +316,7 @@ const Budget: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-500 mb-2">Descripción</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
             <input
               type="text"
               value={editDesc}
@@ -329,14 +329,14 @@ const Budget: React.FC = () => {
           {editType === TransactionType.EXPENSE && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-500 mb-2">Categoría</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría</label>
                 <div className="flex flex-wrap gap-2">
                   {categories.map(c => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => setEditCategory(c)}
-                      className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${editCategory === c ? 'bg-black text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                      className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${editCategory === c ? 'bg-black text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                     >
                       {c}
                     </button>
@@ -350,12 +350,12 @@ const Budget: React.FC = () => {
                 className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${editIsExceptional ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-transparent'}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${editIsExceptional ? 'bg-amber-100 text-amber-600' : 'bg-gray-200 text-gray-500'}`}>
+                  <div className={`p-2 rounded-full ${editIsExceptional ? 'bg-amber-100 text-amber-600' : 'bg-gray-200 text-gray-700'}`}>
                     <AlertTriangle size={18} />
                   </div>
                   <div>
                     <p className={`text-sm font-bold ${editIsExceptional ? 'text-amber-900' : 'text-gray-700'}`}>Gasto Excepcional</p>
-                    <p className="text-xs text-gray-500">No afecta el ritmo diario habitual</p>
+                    <p className="text-xs text-gray-700">No afecta el ritmo diario habitual</p>
                   </div>
                 </div>
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${editIsExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300'}`}>
@@ -385,7 +385,7 @@ const Budget: React.FC = () => {
             <Trash2 size={32} />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">¿Eliminar transacción?</h3>
-          <p className="text-gray-500 text-sm mb-6">
+          <p className="text-gray-700 text-sm mb-6">
             Esta acción no se puede deshacer y afectará los cálculos de tu presupuesto actual.
           </p>
           <div className="flex gap-3 w-full">
@@ -411,11 +411,11 @@ const Budget: React.FC = () => {
     return (
       <>
         <div className="flex flex-col items-center justify-center h-[70vh] text-center px-6">
-          <div className="bg-gray-100 p-4 rounded-full mb-4 text-gray-400">
+          <div className="bg-gray-100 p-4 rounded-full mb-4 text-gray-600">
             <RefreshCcw size={32} />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Sin Ciclo Activo</h2>
-          <p className="text-gray-500 text-sm mb-6">Comienza un nuevo ciclo para rastrear tus gastos y metas.</p>
+          <p className="text-gray-700 text-sm mb-6">Comienza un nuevo ciclo para rastrear tus gastos y metas.</p>
           <button
             onClick={handleOpenCycleModal}
             className="bg-black text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-gray-200 active:scale-95 transition-transform"
@@ -435,12 +435,12 @@ const Budget: React.FC = () => {
       <div className="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 relative overflow-hidden">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest">Dinero disponible este ciclo</h2>
+            <h2 className="text-gray-600 text-xs font-bold uppercase tracking-widest">Dinero disponible este ciclo</h2>
             <p className="text-gray-300 text-[10px] font-medium mt-0.5">
               {activeCycle?.name}
             </p>
           </div>
-          <button onClick={handleOpenCycleModal} className="p-2 -mr-2 text-gray-300 hover:text-gray-900 transition-colors bg-gray-50 rounded-full">
+          <button onClick={handleOpenCycleModal} aria-label="Refrescar o iniciar nuevo ciclo" className="p-2 -mr-2 text-gray-300 hover:text-gray-900 transition-colors bg-gray-50 rounded-full">
             <RefreshCcw size={16} />
           </button>
         </div>
@@ -449,7 +449,7 @@ const Budget: React.FC = () => {
           <span className={`text-5xl font-extrabold tracking-tighter mb-2 ${cycleMetrics.remainingBudget < 0 ? 'text-amber-500' : 'text-gray-900'}`}>
             {currency === 'EUR' ? '€' : '$'}{cycleMetrics.remainingBudget.toLocaleString()}
           </span>
-          <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-semibold text-gray-500">
+          <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-semibold text-gray-700">
             {cycleMetrics.remainingBudget < 0 ? 'Excedido' : 'Disponible'}
           </span>
         </div>
@@ -462,14 +462,14 @@ const Budget: React.FC = () => {
           />
         </div>
 
-        <div className="flex justify-between text-[11px] font-bold uppercase text-gray-400 mb-8 tracking-wide">
+        <div className="flex justify-between text-[11px] font-bold uppercase text-gray-600 mb-8 tracking-wide">
           <span>Gastado ${cycleMetrics.spentThisCycle.toLocaleString()}</span>
           <span>Total ${activeCycle?.initialBudget.toLocaleString()}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className={`rounded-2xl p-4 border ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-transparent'}`}>
-            <span className={`text-xs font-bold uppercase block mb-1 ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-red-400' : 'text-gray-400'}`}>Semana Actual</span>
+            <span className={`text-xs font-bold uppercase block mb-1 ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-red-400' : 'text-gray-600'}`}>Semana Actual</span>
             <span className={`text-xl font-bold tracking-tight ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-red-600' : 'text-gray-900'}`}>
               {currency === 'EUR' ? '€' : '$'}{currentWeekStatus ? currentWeekStatus.remaining.toLocaleString() : '0'}
             </span>
@@ -496,7 +496,7 @@ const Budget: React.FC = () => {
           className="w-full p-5 flex justify-between items-center bg-white active:bg-gray-50"
         >
           <span className="font-bold text-gray-900 text-[15px]">Desglose Semanal</span>
-          {showWeeklyDetail ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+          {showWeeklyDetail ? <ChevronUp size={20} className="text-gray-600" /> : <ChevronDown size={20} className="text-gray-600" />}
         </button>
 
         {showWeeklyDetail && (
@@ -516,7 +516,7 @@ const Budget: React.FC = () => {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold uppercase ${week.isCurrent ? 'text-blue-100' : 'text-gray-400'}`}>
+                      <span className={`text-xs font-bold uppercase ${week.isCurrent ? 'text-blue-100' : 'text-gray-600'}`}>
                         {week.label}
                       </span>
                       {isSqueezed && week.remaining > 0 && (
@@ -526,10 +526,10 @@ const Budget: React.FC = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-400'}`}>
+                      <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-600'}`}>
                         {new Date(week.startDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - {new Date(week.endDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                       </p>
-                      <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-400'}`}>
+                      <p className={`text-[10px] font-medium ${week.isCurrent ? 'text-blue-200' : 'text-gray-600'}`}>
                         • Límite: ${Math.round(week.limit).toLocaleString()}
                       </p>
                     </div>
@@ -551,7 +551,7 @@ const Budget: React.FC = () => {
 
       {/* 3. Transaction List */}
       <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Movimientos</h3>
+        <h3 className="text-xs font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Movimientos</h3>
 
         <div className="space-y-3 pb-4">
           {displayTransactions.length === 0 ? (
@@ -575,14 +575,14 @@ const Budget: React.FC = () => {
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 
-                      ${t.type === TransactionType.INCOME ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                      ${t.type === TransactionType.INCOME ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-700'}`}>
                         {t.type === TransactionType.INCOME ? <RefreshCcw size={22} /> : getCategoryIcon(t.category)}
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-gray-900 text-[15px] truncate">
                           {t.description || 'Sin descripción'}
                         </p>
-                        <p className="text-xs text-gray-500 font-medium flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-gray-700 font-medium flex items-center gap-1.5 mt-0.5">
                           {new Date(t.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                           {t.isExceptional && (
                             <span className="flex items-center gap-0.5 text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ const Onboarding: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { createCycle, setSavingsGoal, setCurrency: saveCurrencyInContext } = useFinance(); // Assuming these exist from types
+    const shouldReduceMotion = useReducedMotion();
 
     const [step, setStep] = useState(1);
     const [currency, setCurrency] = useState('USD');
@@ -46,7 +47,7 @@ const Onboarding: React.FC = () => {
 
     const variants = {
         enter: (direction: number) => ({
-            x: direction > 0 ? 50 : -50,
+            x: shouldReduceMotion ? 0 : (direction > 0 ? 50 : -50),
             opacity: 0,
         }),
         center: {
@@ -56,7 +57,7 @@ const Onboarding: React.FC = () => {
         },
         exit: (direction: number) => ({
             zIndex: 0,
-            x: direction < 0 ? 50 : -50,
+            x: shouldReduceMotion ? 0 : (direction < 0 ? 50 : -50),
             opacity: 0,
         }),
     };

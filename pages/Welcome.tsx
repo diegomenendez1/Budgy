@@ -1,8 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const Welcome: React.FC = () => {
+    const shouldReduceMotion = useReducedMotion();
+
     return (
         <div className="min-h-screen bg-white flex flex-col justify-between relative overflow-hidden">
             {/* Background Decor */}
@@ -14,9 +16,9 @@ const Welcome: React.FC = () => {
 
                 {/* Hero Section */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: shouldReduceMotion ? 0.2 : 0.8 }}
                     className="text-center space-y-6"
                 >
                     <div className="flex justify-center mb-8">
@@ -41,9 +43,9 @@ const Welcome: React.FC = () => {
             {/* Actions Section */}
             <div className="relative z-10 px-8 pb-12 space-y-4">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
+                    transition={{ delay: shouldReduceMotion ? 0 : 0.3, duration: shouldReduceMotion ? 0.2 : 0.8 }}
                     className="space-y-4"
                 >
                     <Link

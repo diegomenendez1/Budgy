@@ -17,10 +17,10 @@ export default {
         ios: {
           bg: '#F2F2F7',
           card: '#FFFFFF',
-          blue: '#007AFF',
-          green: '#34C759',
-          red: '#FF3B30',
-          gray: '#8E8E93',
+          blue: '#005CB9', // Darker blue for 4.5:1 contrast on white
+          green: '#248A3D', // Darker green for contrast
+          red: '#D70015', // Darker red for contrast
+          gray: '#636366', // Accessible gray
           separator: '#C6C6C8',
         }
       },

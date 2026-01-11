@@ -276,11 +276,12 @@ const Insights: React.FC = () => {
             <header className="mb-2 flex justify-between items-start">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Análisis Profundo</h1>
-                    <p className="text-gray-500 text-sm font-medium">Radiografía de tus finanzas</p>
+                    <p className="text-gray-700 text-sm font-medium">Radiografía de tus finanzas</p>
                 </div>
                 <button
                     onClick={() => exportTransactionsToCSV(transactions)}
-                    className="p-2.5 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-500 hover:text-gray-900 transition-colors active:scale-95"
+                    aria-label="Exportar transacciones a CSV"
+                    className="p-2.5 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-700 hover:text-gray-900 transition-colors active:scale-95"
                     title="Exportar a CSV"
                 >
                     <Download size={20} />
@@ -370,7 +371,7 @@ const Insights: React.FC = () => {
                         <span className="text-3xl font-extrabold tracking-tighter text-indigo-600">
                             {zeroSpendDays}
                         </span>
-                        <p className="text-[10px] font-medium mt-1 text-gray-400 leading-tight">
+                        <p className="text-[10px] font-medium mt-1 text-gray-600 leading-tight">
                             Días sin gastos variables este ciclo
                         </p>
                     </div>
@@ -391,13 +392,13 @@ const Insights: React.FC = () => {
                             <span className={`text-2xl font-extrabold tracking-tighter ${fixedRatio > 50 ? 'text-red-500' : 'text-gray-900'}`}>
                                 {Math.round(fixedRatio)}%
                             </span>
-                            <span className="text-[10px] font-bold text-gray-400 mb-1.5">Comprometido</span>
+                            <span className="text-[10px] font-bold text-gray-600 mb-1.5">Comprometido</span>
                         </div>
 
                         <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${fixedRatio > 50 ? 'bg-red-500' : 'bg-gray-900'}`} style={{ width: `${Math.min(fixedRatio, 100)}%` }}></div>
                         </div>
-                        <p className="text-[10px] font-medium mt-2 text-gray-400 leading-tight">
+                        <p className="text-[10px] font-medium mt-2 text-gray-600 leading-tight">
                             De tus ingresos son gastos fijos
                         </p>
                     </div>
@@ -434,7 +435,7 @@ const Insights: React.FC = () => {
                         </ResponsiveContainer>
                         {/* Center Text */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-xs text-gray-400 font-bold uppercase">Total</span>
+                            <span className="text-xs text-gray-600 font-bold uppercase">Total</span>
                             <span className="text-lg font-bold text-gray-900">${spentThisCycle.toLocaleString()}</span>
                         </div>
                     </div>
@@ -449,7 +450,7 @@ const Insights: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                     <span className="block text-sm font-bold text-gray-900">${cat.value.toLocaleString()}</span>
-                                    <span className="text-[10px] text-gray-400 font-medium">
+                                    <span className="text-[10px] text-gray-600 font-medium">
                                         {((cat.value / spentThisCycle) * 100).toFixed(1)}%
                                     </span>
                                 </div>
@@ -498,10 +499,10 @@ const Insights: React.FC = () => {
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h3 className="text-gray-900 font-bold text-lg">Promedio Diario</h3>
-                        <p className="text-gray-400 text-xs font-medium mt-1">Real vs Permitido</p>
+                        <p className="text-gray-600 text-xs font-medium mt-1">Real vs Permitido</p>
                     </div>
                     <div className="bg-gray-50 p-2 rounded-xl">
-                        <CalendarClock size={20} className="text-gray-400" />
+                        <CalendarClock size={20} className="text-gray-600" />
                     </div>
                 </div>
 
@@ -520,8 +521,8 @@ const Insights: React.FC = () => {
                     {/* Safe Limit Bar */}
                     <div>
                         <div className="flex justify-between text-xs font-bold mb-1.5">
-                            <span className="text-gray-400">Límite Saludable</span>
-                            <span className="text-gray-500">${Math.round(dailyLimit).toLocaleString()} / día</span>
+                            <span className="text-gray-600">Límite Saludable</span>
+                            <span className="text-gray-700">${Math.round(dailyLimit).toLocaleString()} / día</span>
                         </div>
                         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden relative">
                             <div className="absolute inset-0 w-full h-full opacity-30 bg-[linear-gradient(45deg,#000_25%,transparent_25%,transparent_50%,#000_50%,#000_75%,transparent_75%,transparent)] bg-[length:10px_10px]"></div>
@@ -541,7 +542,7 @@ const Insights: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-sm text-gray-900 truncate max-w-[140px]">{t.description}</p>
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wide">{t.category}</p>
+                                    <p className="text-[10px] text-gray-600 uppercase font-bold tracking-wide">{t.category}</p>
                                 </div>
                             </div>
                             <span className="font-bold text-gray-900 text-sm">
@@ -550,7 +551,7 @@ const Insights: React.FC = () => {
                         </div>
                     ))}
                     {topTransactions.length === 0 && (
-                        <div className="p-6 text-center text-gray-400 text-sm">Sin datos suficientes</div>
+                        <div className="p-6 text-center text-gray-600 text-sm">Sin datos suficientes</div>
                     )}
                 </div>
             </Card>

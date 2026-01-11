@@ -91,8 +91,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <div>
           <h2 className="text-3xl font-black text-gray-900 tracking-tight">Hola</h2>
           <div className="flex items-center gap-1.5 mt-1">
-            <Calendar size={12} className="text-gray-400" />
-            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">
+            <Calendar size={12} className="text-gray-600" />
+            <p className="text-gray-700 text-xs font-semibold uppercase tracking-wide">
               Día {daysPassed} • {activeCycle.name}
             </p>
           </div>
@@ -100,15 +100,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="bg-white p-2 rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
+            aria-label={isPrivacyMode ? "Desactivar modo privacidad" : "Activar modo privacidad"}
+            className="bg-white p-2 rounded-full shadow-sm border border-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
           >
             {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
           <button
             onClick={showAuth}
+            aria-label="Perfil de usuario e inicio de sesión"
             className="bg-white p-2 rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors"
           >
-            <User size={20} className={user ? "text-blue-600" : "text-gray-400"} />
+            <User size={20} className={user ? "text-blue-600" : "text-gray-600"} />
             {isSyncing && (
               <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
             )}
@@ -159,7 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         ${isOverspending ? 'border-orange-100' : currentSurplus > (totalDisposableIncome * 0.1) ? 'border-green-100' : 'border-gray-100'}`}
         >
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
-          ${isOverspending ? 'bg-orange-50 text-orange-500' : currentSurplus > (totalDisposableIncome * 0.1) ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-500'}`}
+          ${isOverspending ? 'bg-orange-50 text-orange-500' : currentSurplus > (totalDisposableIncome * 0.1) ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-700'}`}
           >
             {isOverspending ? <AlertTriangle size={24} /> : currentSurplus > (totalDisposableIncome * 0.1) ? <Sparkles size={24} /> : <CheckCircle2 size={24} />}
           </div>
@@ -167,7 +169,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <h3 className="font-bold text-gray-900 text-base mb-0.5">
               {isOverspending ? 'Ajusta el ritmo' : currentSurplus > (totalDisposableIncome * 0.1) ? '¡Vas excelente!' : 'Todo bajo control'}
             </h3>
-            <p className="text-xs text-gray-500 font-medium leading-relaxed">
+            <p className="text-xs text-gray-700 font-medium leading-relaxed">
               {isOverspending
                 ? 'Trata de reducir gastos variables hoy.'
                 : currentSurplus > (totalDisposableIncome * 0.1)
@@ -181,7 +183,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       {/* 3.5 Active Installments (BNPL) Section */}
       {activeInstallments.length > 0 && (
         <div className="px-1">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+          <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
             Plazos Activos
           </h3>
@@ -196,13 +198,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <div className="flex justify-between items-start z-10">
                     <div>
                       <span className="block font-bold text-gray-900 text-sm mb-1">{inst.description}</span>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-md inline-block">
+                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-md inline-block">
                         {currency === 'EUR' ? '€' : '$'}{inst.amount.toLocaleString()}/mes
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="block text-indigo-600 font-black text-xl">{inst.remaining}</span>
-                      <span className="text-[9px] text-gray-400 font-bold uppercase">Restantes</span>
+                      <span className="text-[9px] text-gray-600 font-bold uppercase">Restantes</span>
                     </div>
                   </div>
 
@@ -215,7 +217,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   </div>
 
                   <div className="flex justify-between z-10">
-                    <p className="text-[10px] text-gray-400 font-medium">Cuota {inst.currentInstallment} de {inst.totalInstallments}</p>
+                    <p className="text-[10px] text-gray-600 font-medium">Cuota {inst.currentInstallment} de {inst.totalInstallments}</p>
                     {progress > 80 && <p className="text-[10px] text-green-500 font-bold">¡Casi terminas!</p>}
                   </div>
                 </div>
@@ -227,7 +229,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       {/* 4. Shortcuts Grid (Premium) */}
       <div className="px-1">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4">Accesos Directos</h3>
+        <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.15em] mb-4">Accesos Directos</h3>
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => onNavigate('budget')}
@@ -238,7 +240,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
             <div>
               <p className="font-bold text-gray-900 text-sm">Ver Presupuesto</p>
-              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Detalles</p>
+              <p className="text-[10px] text-gray-600 font-bold mt-1 uppercase tracking-wider">Detalles</p>
             </div>
           </button>
 
@@ -251,7 +253,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
             <div>
               <p className="font-bold text-gray-900 text-sm">Asistente IA</p>
-              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Análisis</p>
+              <p className="text-[10px] text-gray-600 font-bold mt-1 uppercase tracking-wider">Análisis</p>
             </div>
           </button>
         </div>

@@ -24,11 +24,12 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
             <button
               key={tab.id}
               onClick={() => setTab(tab.id)}
-              className={`flex flex-col items-center gap-1 w-16 transition-colors duration-200 ${isActive ? 'text-ios-blue' : 'text-gray-400'
+              aria-label={tab.label}
+              className={`flex flex-col items-center gap-1 w-16 transition-colors duration-200 ${isActive ? 'text-blue-700' : 'text-gray-600'
                 }`}
             >
               <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <span className="text-[10px] font-medium" aria-hidden="true">{tab.label}</span>
             </button>
           );
         })}

@@ -189,6 +189,7 @@ const FloatingAddButton: React.FC = () => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsMagicMode(!isMagicMode)}
+                                    aria-label={isMagicMode ? "Desactivar Modo Magia" : "Activar Modo Magia"}
                                     className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isMagicMode ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100'}`}
                                 >
                                     <Sparkles size={20} className={isMagicMode ? 'animate-pulse' : ''} />
@@ -200,6 +201,7 @@ const FloatingAddButton: React.FC = () => {
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
+                                aria-label="Cancelar y cerrar"
                                 className="text-gray-500 font-medium p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
                                 Cancelar
@@ -328,12 +330,13 @@ const FloatingAddButton: React.FC = () => {
                                                             placeholder="Nueva..."
                                                             autoFocus
                                                         />
-                                                        <button onMouseDown={handleAddNewCategory} className="bg-black text-white p-1 rounded-full ml-1"><Check size={12} /></button>
+                                                        <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-black text-white p-1 rounded-full ml-1"><Check size={12} /></button>
                                                     </div>
                                                 ) : (
                                                     <button
                                                         type="button"
                                                         onClick={() => setIsAddingCategory(true)}
+                                                        aria-label="Agregar nueva categoría"
                                                         className="px-3 py-2 rounded-full text-sm font-bold bg-gray-100 text-gray-400 hover:bg-gray-200 border border-dashed border-gray-300"
                                                     >
                                                         <Plus size={16} />

@@ -117,7 +117,7 @@ export const CoachPage: React.FC = () => {
             <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                 <Bot size={48} className="text-gray-300 mb-4" />
                 <h2 className="text-xl font-bold text-gray-700">Inicia sesión</h2>
-                <p className="text-gray-500 mt-2">Necesitas una cuenta para hablar con el Coach.</p>
+                <p className="text-gray-700 mt-2">Necesitas una cuenta para hablar con el Coach.</p>
             </div>
         );
     }
@@ -135,7 +135,7 @@ export const CoachPage: React.FC = () => {
                         <h1 className="font-bold text-gray-900 leading-tight">Budgy Coach</h1>
                         <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${isLoading ? 'bg-purple-500 animate-pulse' : error ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                            <span className="text-xs text-gray-500 font-medium">{isLoading ? 'Pensando...' : error ? 'Error' : 'En línea'}</span>
+                            <span className="text-xs text-gray-700 font-medium">{isLoading ? 'Pensando...' : error ? 'Error' : 'En línea'}</span>
                         </div>
                     </div>
                 </div>
@@ -144,20 +144,25 @@ export const CoachPage: React.FC = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={handleClearChat}
-                        className="p-2 rounded-full bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        aria-label="Borrar historial de conversación"
+                        className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors"
                         title="Limpiar conversación"
                     >
                         <Trash2 size={18} />
                     </button>
                     <button
                         onClick={() => setPrivacyMode(!privacyMode)}
-                        className={`p-2 rounded-full transition-colors ${privacyMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}
+                        aria-label={privacyMode ? "Desactivar modo privacidad" : "Activar modo privacidad"}
+                        className={`p-2 rounded-full transition-colors ${privacyMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
                         title="Modo Privacidad"
                     >
                         <Shield size={18} />
                     </button>
                     <div className="relative group">
-                        <button className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-full text-xs font-bold text-gray-600 hover:bg-gray-200 transition-colors">
+                        <button
+                            aria-label={`Rango de análisis: ${range === 'current_cycle' ? 'Ciclo Actual' : range === 'last_30_days' ? '30 Días' : 'Este Mes'}`}
+                            className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-full text-xs font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+                        >
                             <Clock size={14} />
                             <span>{range === 'current_cycle' ? 'Ciclo Actual' : range === 'last_30_days' ? '30 Días' : 'Este Mes'}</span>
                             <ChevronDown size={14} />
@@ -250,6 +255,7 @@ export const CoachPage: React.FC = () => {
                     />
                     <button
                         onClick={() => handleSend(inputText)}
+                        aria-label="Enviar mensaje"
                         disabled={!inputText.trim() || isLoading}
                         className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-purple-200 disabled:opacity-50 disabled:shadow-none hover:bg-purple-700 active:scale-90 transition-all"
                     >
@@ -258,7 +264,7 @@ export const CoachPage: React.FC = () => {
                 </div>
 
                 {/* Footer info */}
-                <p className="text-[10px] text-center text-gray-400 mt-2 flex items-center justify-center gap-1">
+                <p className="text-[10px] text-center text-gray-600 mt-2 flex items-center justify-center gap-1">
                     <Shield size={10} />
                     {privacyMode ? 'Modo Privado activado: Descripciones ocultas.' : 'Tus datos se envían de forma segura para el análisis.'}
                 </p>

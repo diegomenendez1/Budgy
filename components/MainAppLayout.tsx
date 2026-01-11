@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import TabBar from './TabBar';
 import FloatingAddButton from './FloatingAddButton';
 import Dashboard from '../pages/Dashboard';
@@ -10,6 +10,7 @@ import CoachPage from '../pages/Coach';
 
 const MainAppLayout: React.FC = () => {
     const [currentTab, setCurrentTab] = useState('dashboard');
+    const shouldReduceMotion = useReducedMotion();
 
     const renderPage = () => {
         switch (currentTab) {
@@ -31,9 +32,9 @@ const MainAppLayout: React.FC = () => {
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentTab}
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
+                            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
+                            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+                            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
                         >
                             {renderPage()}
