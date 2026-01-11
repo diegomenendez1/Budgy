@@ -133,4 +133,7 @@ export interface FinancialContextType {
 
   // AI Coach
   generateDataPacket: (range: 'current_cycle' | 'last_30_days' | 'current_month') => any;
+
+  // Security & Data Privacy
+  wipeAllUserData: () => Promise<void>;
 }

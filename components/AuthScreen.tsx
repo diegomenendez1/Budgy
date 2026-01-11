@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Download, Trash2, AlertCircle } from 'lucide-react';
+import { exportTransactionsToCSV } from '../services/exportService';
 
 export const AuthScreen: React.FC = () => {
     const { user, signOut } = useAuth();
-    const { resetData } = useFinance();
+    const { resetData, transactions, wipeAllUserData } = useFinance();
+    const [showWipeConfirm, setShowWipeConfirm] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
@@ -51,7 +53,7 @@ export const AuthScreen: React.FC = () => {
                     <h2 className="text-2xl font-bold mb-2 text-white">¡Hola!</h2>
                     <p className="text-neutral-400 mb-6">{user.email}</p>
 
-                    <div className="bg-neutral-700/50 p-4 rounded-lg mb-8 text-left">
+                    <div className="bg-neutral-700/50 p-4 rounded-lg mb-4 text-left">
                         <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Estado de Sincronización</h3>
                         <div className="flex items-center gap-2 text-green-400 text-sm">
                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -59,12 +61,56 @@ export const AuthScreen: React.FC = () => {
                         </div>
                     </div>
 
+                    <div className="space-y-3 mb-8">
+                        <button
+                            onClick={() => exportTransactionsToCSV(transactions)}
+                            className="w-full bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Download size={18} />
+                            Exportar mis datos (CSV)
+                        </button>
+
+                        {!showWipeConfirm ? (
+                            <button
+                                onClick={() => setShowWipeConfirm(true)}
+                                className="w-full bg-red-900/10 hover:bg-red-900/20 text-red-500/80 text-sm font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Trash2 size={16} />
+                                Eliminar mi cuenta y datos
+                            </button>
+                        ) : (
+                            <div className="bg-red-900/20 p-4 rounded-xl border border-red-500/30 animate-in fade-in zoom-in duration-200">
+                                <p className="text-xs text-red-200 mb-3 flex items-center gap-1.5 justify-center">
+                                    <AlertCircle size={14} />
+                                    Esta acción es permanente y no se puede deshacer.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowWipeConfirm(false)}
+                                        className="flex-1 bg-neutral-700 hover:bg-neutral-600 text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            await wipeAllUserData();
+                                            signOut();
+                                        }}
+                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                                    >
+                                        Sí, borrar todo
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => {
                             resetData();
                             signOut();
                         }}
-                        className="w-full bg-red-600/10 hover:bg-red-600/20 text-red-400 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-neutral-700/30 hover:bg-neutral-700/50 text-neutral-400 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                         <LogOut size={18} />
                         Cerrar Sesión

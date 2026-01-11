@@ -767,6 +767,40 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
     });
 
+  // --- Security & Data Privacy ---
+  const wipeAllUserData = async () => {
+    if (!user) return;
+
+    setIsSyncing(true);
+    try {
+      // 1. Delete from all tables in Supabase for this owner
+      const tables = ['transactions', 'recurring_items', 'cycles', 'user_settings'] as const;
+
+      for (const table of tables) {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq('owner_id', user.id);
+
+        if (error) console.error(`Error wiping table ${table}:`, error);
+      }
+
+      // 2. Clear local data
+      resetData();
+
+      // 3. Clear pending operations
+      setPendingOperations([]);
+      localStorage.removeItem('pendingOperations');
+
+      console.log('User data successfully wiped from cloud and local storage.');
+    } catch (err) {
+      console.error('Failed to wipe user data:', err);
+      throw err;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // --- Reset Data (Logout cleanup) ---
   const resetData = () => {
     // 1. Clear State
@@ -900,7 +934,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       showAuth: () => setShowAuthModal(true),
       isSyncing,
       resetData,
-      generateDataPacket
+      generateDataPacket,
+      wipeAllUserData
     }}>
       {children}
 
