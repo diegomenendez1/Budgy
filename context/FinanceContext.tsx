@@ -117,6 +117,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem('pendingOperations', JSON.stringify(pendingOperations));
   }, [pendingOperations]);
 
+  // --- Sync State ---
+  const { user } = useAuth();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [pendingSyncResolver, setPendingSyncResolver] = useState<((choice: 'UPLOAD' | 'DOWNLOAD' | 'MERGE') => void) | null>(null);
+
   // --- Auto-sync on reconnection ---
   useEffect(() => {
     const handleOnline = () => {
@@ -126,13 +133,6 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [user, pendingOperations]); // depends on these to ensure it's up to date
-
-  // --- Sync State ---
-  const { user } = useAuth();
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showConflictModal, setShowConflictModal] = useState(false);
-  const [pendingSyncResolver, setPendingSyncResolver] = useState<((choice: 'UPLOAD' | 'DOWNLOAD' | 'MERGE') => void) | null>(null);
 
   // --- Actions ---
   const addTransaction = async (t: Omit<Transaction, 'id'>) => {
