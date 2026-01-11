@@ -15,14 +15,25 @@ export const useFinance = () => {
 };
 
 // Helper para leer datos de forma segura. Si falla el parseo, devuelve el valor por defecto.
+// Helper para leer datos de forma segura. Si falla el parseo, intenta usar el string directo o devuelve el valor por defecto.
 const getSavedData = <T,>(key: string, defaultValue: T): T => {
   if (typeof window === 'undefined') return defaultValue;
   try {
     const saved = localStorage.getItem(key);
     if (!saved) return defaultValue;
-    return JSON.parse(saved);
+
+    // Intentar asumiendo que es JSON
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      // Si falla y esperamos un string, puede que se haya guardado sin comillas
+      if (typeof defaultValue === 'string') {
+        return saved as unknown as T;
+      }
+      throw e; // Si no es string, es un error real
+    }
   } catch (error) {
-    console.warn(`Error recuperando datos para ${key}, usando valor por defecto.`, error);
+    console.warn(`Error recuperando datos para ${key}, reseteando a default.`, error);
     return defaultValue;
   }
 };
@@ -229,6 +240,19 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const totalFixedExpenses = recurringItems
     .filter(i => i.type === TransactionType.EXPENSE)
+    .filter(item => {
+      if (!item.isInstallment) return true; // Normal recurrent items (Netflix, Rent) always active
+      if (!item.startDate || !item.totalInstallments) return true; // Safety fallback
+
+      const start = new Date(item.startDate);
+      const now = new Date();
+
+      // Calculate months passed since start
+      const monthsPassed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+
+      // Active if we are within the [0, total - 1] range
+      return monthsPassed >= 0 && monthsPassed < item.totalInstallments;
+    })
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   // This is the "Free Money" available for allocation
@@ -692,6 +716,29 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
 
+  // --- Active Installments (BNPL Visibility) ---
+  const activeInstallments = useMemo(() => {
+    return recurringItems
+      .filter(item => item.isInstallment && item.startDate && item.totalInstallments)
+      .map(item => {
+        const start = new Date(item.startDate!);
+        const now = new Date();
+        const monthsPassed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+
+        // Only include if it's currently active (or slightly in future/past context)
+        // We show it if it's active OR if it just finished this month for visibility
+        if (monthsPassed >= 0 && monthsPassed < item.totalInstallments!) {
+          return {
+            ...item,
+            currentInstallment: monthsPassed + 1,
+            remaining: item.totalInstallments! - (monthsPassed + 1)
+          };
+        }
+        return null;
+      })
+      .filter((i): i is nonNullable => i !== null); // Filter out nulls
+  }, [recurringItems]);
+
   // --- Create Cycle ---
   const createCycle = async (endDate: Date, customInitialBudget: number) => {
     // 1. Deactivate current cycle
@@ -900,6 +947,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       cycleMetrics,
       weeklyBreakdown,
       currentWeekStatus,
+      activeInstallments,
       cycleHistory,
 
       categories,

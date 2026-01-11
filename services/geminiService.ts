@@ -54,3 +54,51 @@ export const analyzeFinances = async (
     return "El analista está ocupado en este momento. Reintenta en unos segundos.";
   }
 };
+
+export const parseTransactionInput = async (input: string): Promise<any> => {
+  if (!apiKey) return null;
+
+  const prompt = `
+     Actúa como un parser de datos financieros extremadamente preciso.
+     Analiza el siguiente texto de usuario y extrae la intención estructurada en JSON.
+     
+     Texto: "${input}"
+     
+     Reglas de Extracción:
+     1. Detecta si es GASTO (EXPENSE) o INGRESO (INCOME).
+     2. Extrae el monto total.
+     3. Identifica la categoría más probable (Comida, Transporte, Ocio, Salud, Compras, Tecnología, Hogar, Otros).
+     4. CRÍTICO: Detecta si es una compra a "meses", "cuotas", "plazos" o "MSI".
+        - Si es a plazos:
+          - "isInstallment": true
+          - "totalInstallments": número de cuotas (default 1 si no se especifica)
+          - "installmentAmount": monto calculada por cuota
+          - "startDate": fecha ISO de hoy (o la mencionada)
+     
+     Formato JSON esperado (SOLO JSON, sin markdown):
+     {
+       "type": "EXPENSE" | "INCOME",
+       "amount": number,
+       "description": string, // Breve y limpia
+       "category": string,
+       "isInstallment": boolean,
+       "totalInstallments": number, 
+       "startDate": string
+     }
+   `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.text || "{}";
+    // Clean markdown code blocks if present
+    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("Gemini Parse Error:", error);
+    return null;
+  }
+};

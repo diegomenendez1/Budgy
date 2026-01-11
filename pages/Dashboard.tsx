@@ -27,7 +27,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     totalDisposableIncome,
     showAuth,
     isSyncing,
-    currency
+    currency,
+    activeInstallments
   } = useFinance();
   const { user } = useAuth();
   const [isPrivacyMode, setIsPrivacyMode] = React.useState(false);
@@ -173,6 +174,53 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   ? 'Estás ahorrando más de lo planeado.'
                   : 'Tus gastos están alineados con tu meta.'}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* 3.5 Active Installments (BNPL) Section */}
+      {activeInstallments.length > 0 && (
+        <div className="px-1">
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+            Plazos Activos
+          </h3>
+          <div className="space-y-3">
+            {activeInstallments.map((inst) => {
+              const progress = (inst.currentInstallment / (inst.totalInstallments || 1)) * 100;
+              return (
+                <div key={inst.id} className="bg-white p-5 rounded-[28px] border border-gray-100 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+                  {/* Progress Background Hint */}
+                  <div className="absolute left-0 bottom-0 h-1 bg-indigo-50 transition-all duration-1000 group-hover:bg-indigo-100" style={{ width: `${progress}%` }}></div>
+
+                  <div className="flex justify-between items-start z-10">
+                    <div>
+                      <span className="block font-bold text-gray-900 text-sm mb-1">{inst.description}</span>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-md inline-block">
+                        {currency === 'EUR' ? '€' : '$'}{inst.amount.toLocaleString()}/mes
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-indigo-600 font-black text-xl">{inst.remaining}</span>
+                      <span className="text-[9px] text-gray-400 font-bold uppercase">Restantes</span>
+                    </div>
+                  </div>
+
+                  {/* Visual Progress Bar */}
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden relative z-10">
+                    <div
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-1000"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+
+                  <div className="flex justify-between z-10">
+                    <p className="text-[10px] text-gray-400 font-medium">Cuota {inst.currentInstallment} de {inst.totalInstallments}</p>
+                    {progress > 80 && <p className="text-[10px] text-green-500 font-bold">¡Casi terminas!</p>}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

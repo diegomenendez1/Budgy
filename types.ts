@@ -37,6 +37,10 @@ export interface RecurringItem extends BaseEntity {
   description: string;
   amount: number;
   type: TransactionType;
+  // Installment / BNPL logic
+  isInstallment?: boolean;
+  totalInstallments?: number; // e.g., 3, 6, 12
+  startDate?: string; // ISO Date required to calculate expiration
 }
 
 export interface WeeklyStatus {
@@ -110,6 +114,9 @@ export interface FinancialContextType {
   cycleMetrics: CycleMetrics;
   weeklyBreakdown: WeeklyStatus[];
   currentWeekStatus: WeeklyStatus | null;
+
+  // Installments / BNPL
+  activeInstallments: (RecurringItem & { currentInstallment: number, remaining: number })[];
 
   // History
   cycleHistory: CycleHistoryItem[];
