@@ -17,7 +17,7 @@ const Register: React.FC = () => {
         setError(null);
 
         try {
-            const { error: signUpError } = await supabase.auth.signUp({
+            const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -29,13 +29,23 @@ const Register: React.FC = () => {
 
             if (signUpError) throw signUpError;
 
-            // Assuming that if successful, we can send them to onboarding or login
-            navigate('/onboarding');
+            // If we have a session, we are logged in (auto-confirm often enabled in local/dev)
+            if (data?.session) {
+                navigate('/onboarding');
+            } else if (data?.user) {
+                // User created but no session -> likely needs email confirmation
+                setError("Cuenta creada. Por favor, revisa tu correo para confirmar tu cuenta antes de iniciar sesión.");
+                // We don't navigate to /onboarding because a protected route would kick them back to /welcome
+            } else {
+                throw new Error("No se pudo iniciar la sesión automáticamente.");
+            }
 
         } catch (err: any) {
             let message = "No se pudo crear la cuenta.";
             if (err.message.includes("User already registered")) {
                 message = "Este correo ya está registrado.";
+            } else if (err.message) {
+                message = err.message;
             }
             setError(message);
         } finally {

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Transaction, RecurringItem, FinancialContextType, TransactionType, WeeklyStatus, CycleHistoryItem, Cycle, CycleMetrics, UserSettings, BaseEntity } from '../types';
 import { supabase } from '../lib/supabase';
-import { calculateCycleMetrics, calculateWeeklyBreakdown } from '../lib/financeLogic';
+import { calculateCycleMetrics, calculateWeeklyBreakdown } from '../src/lib/financeLogic';
 import { useAuth } from './AuthContext';
 import { AuthScreen } from '../components/AuthScreen';
 import { SyncConflictModal } from '../components/SyncConflictModal';
