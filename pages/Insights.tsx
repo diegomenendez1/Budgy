@@ -281,7 +281,7 @@ const Insights: React.FC = () => {
                 <button
                     onClick={() => exportTransactionsToCSV(transactions)}
                     aria-label="Exportar transacciones a CSV"
-                    className="p-2.5 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-700 hover:text-gray-900 transition-colors active:scale-95"
+                    className="p-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-700 hover:text-gray-900 transition-colors active:scale-95"
                     title="Exportar a CSV"
                 >
                     <Download size={20} />

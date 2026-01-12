@@ -25,7 +25,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
               key={tab.id}
               onClick={() => setTab(tab.id)}
               aria-label={tab.label}
-              className={`flex flex-col items-center gap-1 w-16 transition-colors duration-200 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-slate-400'
+              className={`flex flex-col items-center gap-1 w-16 py-2 transition-colors duration-200 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-slate-400'
                 }`}
             >
               <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />

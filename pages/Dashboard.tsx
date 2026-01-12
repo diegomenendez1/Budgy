@@ -111,14 +111,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <button
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
             aria-label={isPrivacyMode ? "Desactivar modo privacidad" : "Activar modo privacidad"}
-            className="bg-white dark:bg-slate-900 p-2 rounded-full shadow-sm border border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+            className="bg-white dark:bg-slate-900 p-3 rounded-full shadow-sm border border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
           >
             {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
           <button
             onClick={() => setIsProfileOpen(true)}
             aria-label="Perfil de usuario e inicio de sesión"
-            className="bg-white dark:bg-slate-900 p-2 rounded-full shadow-sm border border-gray-100 dark:border-slate-800 relative hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            className="bg-white dark:bg-slate-900 p-3 rounded-full shadow-sm border border-gray-100 dark:border-slate-800 relative hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
           >
             <User size={20} className={user ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-slate-400"} />
             {isSyncing && (
@@ -151,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <button
                   onClick={() => setIsProfileOpen(false)}
                   aria-label="Cerrar perfil"
-                  className="p-2 bg-gray-100 dark:bg-slate-800 rounded-full text-gray-500 dark:text-slate-400 transition-colors"
+                  className="p-3 bg-gray-100 dark:bg-slate-800 rounded-full text-gray-500 dark:text-slate-400 transition-colors"
                 >
                   <X size={20} />
                 </button>
