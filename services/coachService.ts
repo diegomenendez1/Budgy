@@ -11,7 +11,7 @@ export interface ChatMessage {
 
 export const coachService = {
     // 1. Send message to AI (via n8n)
-    async sendMessage(userId: string, sessionId: string, message: string, dataPacket: any) {
+    async sendMessage(userId: string, sessionId: string, message: string, dataPacket: any, privacyMode: boolean = false) {
         if (!N8N_WEBHOOK_URL) {
             throw new Error('CONFIG_ERROR: VITE_N8N_WEBHOOK_URL is missing in .env');
         }
@@ -20,7 +20,8 @@ export const coachService = {
             userId,
             sessionId,
             message,
-            dataPacket
+            dataPacket,
+            privacyMode
         };
 
         try {

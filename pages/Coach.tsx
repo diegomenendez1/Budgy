@@ -93,7 +93,7 @@ export const CoachPage: React.FC = () => {
 
         try {
             // 2. Send to N8N (Service handles logic)
-            const responseText = await coachService.sendMessage(user.id, sessionId, text, context);
+            const responseText = await coachService.sendMessage(user.id, sessionId, text, context, privacyMode);
 
             // 3. Add AI Response
             const aiMsg: ChatMessage = {
