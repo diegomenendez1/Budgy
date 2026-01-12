@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
+import { ThemeProvider } from './context/ThemeContext';
 import MainAppLayout from './components/MainAppLayout';
 import Welcome from './pages/Welcome';
 import Onboarding from './pages/Onboarding';
@@ -70,11 +71,13 @@ const AppContent = () => {
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <FinanceProvider>
-          <AppContent />
-        </FinanceProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <FinanceProvider>
+            <AppContent />
+          </FinanceProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 };

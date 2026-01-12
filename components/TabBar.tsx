@@ -15,7 +15,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-200 pb-safe pt-2 px-6 z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-gray-200 dark:border-slate-800 pb-safe pt-2 px-6 z-50 transition-colors duration-300">
       <div className="flex justify-between items-center max-w-md mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -25,7 +25,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
               key={tab.id}
               onClick={() => setTab(tab.id)}
               aria-label={tab.label}
-              className={`flex flex-col items-center gap-1 w-16 transition-colors duration-200 ${isActive ? 'text-blue-700' : 'text-gray-600'
+              className={`flex flex-col items-center gap-1 w-16 transition-colors duration-200 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-slate-400'
                 }`}
             >
               <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />

@@ -26,7 +26,7 @@ const MainAppLayout: React.FC = () => {
     const showFloatingButton = ['dashboard', 'budget', 'planning', 'insights', 'coach'].includes(currentTab);
 
     return (
-        <div className="min-h-screen bg-[#F2F2F7] text-gray-900 font-sans selection:bg-blue-200/50">
+        <div className="min-h-screen bg-[#F2F2F7] dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans selection:bg-blue-200/50 transition-colors duration-300">
             <main className="max-w-md mx-auto min-h-screen relative">
                 <div className="pt-safe pb-safe-nav px-5">
                     <AnimatePresence mode="wait">

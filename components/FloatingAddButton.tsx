@@ -181,7 +181,7 @@ const FloatingAddButton: React.FC = () => {
                 <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center backdrop-blur-sm animate-fade-in">
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)}></div>
 
-                    <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden transition-colors duration-300">
 
                         {/* Header with Magic Toggle */}
                         <div className="flex justify-between items-center mb-6">
@@ -194,14 +194,14 @@ const FloatingAddButton: React.FC = () => {
                                     <Sparkles size={20} className={isMagicMode ? 'animate-pulse' : ''} />
                                     <span className="text-xs font-bold uppercase tracking-wider">{isMagicMode ? 'Modo Magia' : 'Magia'}</span>
                                 </button>
-                                <h3 className="text-xl font-bold text-gray-900">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                                     {isMagicMode ? 'Registro Inteligente' : (txType === TransactionType.INCOME ? 'Nuevo Ingreso' : 'Nuevo Gasto')}
                                 </h3>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
                                 aria-label="Cancelar y cerrar"
-                                className="text-gray-500 font-medium p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                className="text-gray-500 dark:text-slate-400 font-medium p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                             >
                                 Cancelar
                             </button>
@@ -210,18 +210,18 @@ const FloatingAddButton: React.FC = () => {
                         {showSavingsAlert ? (
                             /* ... Savings Alert ... */
                             <div className="animate-in flex flex-col items-center text-center pt-2">
-                                <div className="bg-amber-100 p-4 rounded-full mb-4 text-amber-600 shadow-lg shadow-amber-500/20">
+                                <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-4 text-amber-600 dark:text-amber-400 shadow-lg shadow-amber-500/20">
                                     <AlertTriangle size={32} strokeWidth={2.5} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">Presupuesto Excedido</h3>
-                                <p className="text-gray-500 mb-6 text-sm px-4">
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">Presupuesto Excedido</h3>
+                                <p className="text-gray-500 dark:text-slate-400 mb-6 text-sm px-4">
                                     Este gasto supera tu disponible actual.
                                 </p>
                                 <div className="w-full space-y-3">
-                                    <button onClick={handleUseSavings} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
+                                    <button onClick={handleUseSavings} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-blue-500/30">
                                         <Check size={20} /> Usar ahorros
                                     </button>
-                                    <button onClick={() => handleSubmit()} className="w-full bg-gray-100 text-gray-600 font-bold py-3 rounded-2xl">
+                                    <button onClick={() => handleSubmit()} className="w-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 font-bold py-3 rounded-2xl">
                                         Continuar igual
                                     </button>
                                 </div>
@@ -234,7 +234,7 @@ const FloatingAddButton: React.FC = () => {
                                         value={magicInput}
                                         onChange={(e) => setMagicInput(e.target.value)}
                                         placeholder="Ej: Compré zapatos en Zara por $2000 a 3 meses sin intereses..."
-                                        className="w-full p-4 bg-indigo-50/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-lg font-medium resize-none h-32 text-indigo-900 placeholder:text-indigo-300"
+                                        className="w-full p-4 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-lg font-medium resize-none h-32 text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-800"
                                         autoFocus
                                     />
                                     <div className="absolute bottom-3 right-3">
@@ -249,7 +249,7 @@ const FloatingAddButton: React.FC = () => {
                                     {isAnalyzing ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
                                     {isAnalyzing ? 'Analizando...' : 'Procesar con IA'}
                                 </button>
-                                <p className="text-center text-xs text-gray-400">
+                                <p className="text-center text-xs text-gray-400 dark:text-slate-500">
                                     Detecta automáticamente plazos (MSI), categorías y montos.
                                 </p>
                             </div>
@@ -258,32 +258,32 @@ const FloatingAddButton: React.FC = () => {
                             <form onSubmit={handleSubmit} className="space-y-5 animate-in">
 
                                 {/* Type Switcher */}
-                                <div className="flex bg-gray-100 p-1 rounded-2xl">
+                                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl">
                                     <button
                                         type="button"
                                         onClick={() => setTxType(TransactionType.EXPENSE)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.EXPENSE ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-500 dark:text-slate-500'}`}
                                     >
                                         <ArrowUp size={16} /> Gasto
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setTxType(TransactionType.INCOME)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.INCOME ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500'}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.INCOME ? 'bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 shadow-sm' : 'text-gray-500 dark:text-slate-500'}`}
                                     >
                                         <ArrowDown size={16} /> Ingreso
                                     </button>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-500 mb-1">Monto</label>
+                                    <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-1">Monto</label>
                                     <div className="relative">
-                                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${txType === TransactionType.INCOME ? 'text-green-500' : 'text-gray-400'}`}>$</span>
+                                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${txType === TransactionType.INCOME ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-slate-600'}`}>$</span>
                                         <input
                                             type="number"
                                             value={amount}
                                             onChange={(e) => setAmount(e.target.value)}
-                                            className={`w-full text-4xl font-bold border-b-2 border-gray-100 focus:border-black focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 ${txType === TransactionType.INCOME ? 'text-green-600' : 'text-gray-900'}`}
+                                            className={`w-full text-4xl font-bold border-b-2 border-gray-100 dark:border-slate-800 focus:border-black dark:focus:border-white focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 dark:placeholder:text-slate-800 ${txType === TransactionType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}
                                             placeholder="0"
                                             autoFocus
                                             inputMode="decimal"
@@ -294,12 +294,12 @@ const FloatingAddButton: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-500 mb-2">Descripción</label>
+                                    <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-2">Descripción</label>
                                     <input
                                         type="text"
                                         value={desc}
                                         onChange={(e) => setDesc(e.target.value)}
-                                        className="w-full p-4 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 font-medium text-lg"
+                                        className="w-full p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5 font-medium text-lg text-gray-900 dark:text-white"
                                         placeholder={txType === TransactionType.INCOME ? "Venta, Regalo..." : "¿En qué gastaste?"}
                                     />
                                 </div>
@@ -307,38 +307,38 @@ const FloatingAddButton: React.FC = () => {
                                 {txType === TransactionType.EXPENSE && (
                                     <>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-500 mb-2">Categoría</label>
+                                            <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-2">Categoría</label>
                                             <div className="flex flex-wrap gap-2">
                                                 {categories.map(c => (
                                                     <button
                                                         key={c}
                                                         type="button"
                                                         onClick={() => setCategory(c)}
-                                                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${category === c ? 'bg-black text-white shadow-md transform scale-105' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${category === c ? 'bg-black dark:bg-white text-white dark:text-black shadow-md transform scale-105' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                                                     >
                                                         {c}
                                                     </button>
                                                 ))}
 
                                                 {isAddingCategory ? (
-                                                    <div className="flex items-center bg-gray-100 rounded-full px-2 pl-3 py-1">
+                                                    <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-full px-2 pl-3 py-1">
                                                         <input
                                                             value={newCategoryName}
                                                             onChange={(e) => setNewCategoryName(e.target.value)}
                                                             onBlur={handleAddNewCategory}
                                                             onKeyDown={(e) => e.key === 'Enter' && handleAddNewCategory()}
-                                                            className="bg-transparent border-none focus:outline-none text-sm font-bold text-gray-900 w-24"
+                                                            className="bg-transparent border-none focus:outline-none text-sm font-bold text-gray-900 dark:text-white w-24"
                                                             placeholder="Nueva..."
                                                             autoFocus
                                                         />
-                                                        <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-black text-white p-1 rounded-full ml-1"><Check size={12} /></button>
+                                                        <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-black dark:bg-white text-white dark:text-black p-1 rounded-full ml-1"><Check size={12} /></button>
                                                     </div>
                                                 ) : (
                                                     <button
                                                         type="button"
                                                         onClick={() => setIsAddingCategory(true)}
                                                         aria-label="Agregar nueva categoría"
-                                                        className="px-3 py-2 rounded-full text-sm font-bold bg-gray-100 text-gray-400 hover:bg-gray-200 border border-dashed border-gray-300"
+                                                        className="px-3 py-2 rounded-full text-sm font-bold bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:bg-gray-200 dark:hover:bg-slate-700 border border-dashed border-gray-300 dark:border-slate-700"
                                                     >
                                                         <Plus size={16} />
                                                     </button>
@@ -347,40 +347,40 @@ const FloatingAddButton: React.FC = () => {
                                         </div>
 
                                         {/* Manual Installment Toggle */}
-                                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-3">
+                                        <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800 mb-3">
                                             <div
                                                 onClick={() => setIsManualInstallment(!isManualInstallment)}
                                                 className="flex items-center justify-between cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`p-2 rounded-full ${isManualInstallment ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+                                                    <div className={`p-2 rounded-full ${isManualInstallment ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
                                                         <ArrowRight size={18} className={isManualInstallment ? "rotate-45" : ""} />
                                                     </div>
                                                     <div>
-                                                        <p className={`text-sm font-bold ${isManualInstallment ? 'text-indigo-900' : 'text-gray-700'}`}>Compra a Plazos (MSI)</p>
-                                                        <p className="text-xs text-gray-500">Pagar en varias cuotas mensuales</p>
+                                                        <p className={`text-sm font-bold ${isManualInstallment ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-slate-300'}`}>Compra a Plazos (MSI)</p>
+                                                        <p className="text-xs text-gray-500 dark:text-slate-500">Pagar en varias cuotas mensuales</p>
                                                     </div>
                                                 </div>
-                                                <div className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${isManualInstallment ? 'bg-indigo-600 justify-end' : 'bg-gray-300 justify-start'}`}>
+                                                <div className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${isManualInstallment ? 'bg-indigo-600 justify-end' : 'bg-gray-300 dark:bg-slate-700 justify-start'}`}>
                                                     <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
                                                 </div>
                                             </div>
 
                                             {/* Installment Details (Collapsible) */}
                                             {isManualInstallment && (
-                                                <div className="mt-3 pt-3 border-t border-gray-200 animate-in pl-11">
-                                                    <label className="block text-xs font-bold text-gray-500 mb-1">¿A cuántos meses?</label>
+                                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 animate-in pl-11">
+                                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">¿A cuántos meses?</label>
                                                     <div className="flex items-center gap-3">
                                                         <input
                                                             type="range"
                                                             min="2" max="24" step="1"
                                                             value={manualInstallmentsCount}
                                                             onChange={(e) => setManualInstallmentsCount(parseInt(e.target.value))}
-                                                            className="flex-1 accent-indigo-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                                            className="flex-1 accent-indigo-600 h-2 bg-gray-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
                                                         />
-                                                        <span className="font-black text-indigo-600 w-8 text-center">{manualInstallmentsCount}</span>
+                                                        <span className="font-black text-indigo-600 dark:text-indigo-400 w-8 text-center">{manualInstallmentsCount}</span>
                                                     </div>
-                                                    <p className="text-xs text-indigo-500 mt-2 font-medium text-right">
+                                                    <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-2 font-medium text-right">
                                                         Pagarás <span className="font-bold">${amount ? (parseFloat(amount) / manualInstallmentsCount).toFixed(0) : '0'} / mes</span>
                                                     </p>
                                                 </div>
@@ -389,16 +389,16 @@ const FloatingAddButton: React.FC = () => {
 
                                         <div
                                             onClick={() => setIsExceptional(!isExceptional)}
-                                            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${isExceptional ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-transparent'}`}
+                                            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${isExceptional ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/50' : 'bg-gray-50 dark:bg-slate-800/50 border-transparent'}`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-full ${isExceptional ? 'bg-amber-100 text-amber-600' : 'bg-gray-200 text-gray-500'}`}><AlertTriangle size={18} /></div>
+                                                <div className={`p-2 rounded-full ${isExceptional ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}><AlertTriangle size={18} /></div>
                                                 <div>
-                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900' : 'text-gray-700'}`}>Gasto Único</p>
-                                                    <p className="text-[10px] text-amber-600/60 font-medium">No afecta tu ritmo diario</p>
+                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900 dark:text-amber-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Único</p>
+                                                    <p className="text-[10px] text-amber-600/60 dark:text-amber-400/60 font-medium">No afecta tu ritmo diario</p>
                                                 </div>
                                             </div>
-                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300'}`}>{isExceptional && <div className="w-2 h-2 bg-white rounded-full" />}</div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300 dark:border-slate-700'}`}>{isExceptional && <div className="w-2 h-2 bg-white rounded-full" />}</div>
                                         </div>
                                     </>
                                 )}
