@@ -77,7 +77,7 @@ test.describe('Mobile Native UX Audit', () => {
                     // Apple Human Interface Guidelines: 44x44pt
                     // Android Design Guidelines: 48x48dp
                     // We check for at least 40px as a reasonable web threshold
-                    const isIconOnly = await el.evaluate(node => node.innerText.trim().length === 0);
+                    const isIconOnly = await el.evaluate(node => (node.textContent || '').trim().length === 0);
                     if (isIconOnly) {
                         // Icon buttons are often small targets
                         if (box.width < 40 || box.height < 40) {
