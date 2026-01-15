@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
+import { Send, Bot, Sparkles, Shield, Clock, ChevronDown, RefreshCw, AlertTriangle, Trash2, Mic, Square } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -28,6 +28,11 @@ export const CoachPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [range, setRange] = useState<AnalysisRange>('current_cycle');
     const [privacyMode, setPrivacyMode] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [shouldSendVoice, setShouldSendVoice] = useState(false);
+
+    const recognitionRef = useRef<any>(null);
+    const userReleasedRef = useRef(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initialize Session & History
@@ -44,6 +49,68 @@ export const CoachPage: React.FC = () => {
             timestamp: new Date()
         }]);
     }, []); // Run once on mount
+
+    // Voice Recognition Setup
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognitionRef.current = new SpeechRecognition();
+                recognitionRef.current.continuous = true;
+                recognitionRef.current.interimResults = true;
+                recognitionRef.current.lang = 'es-ES';
+
+                recognitionRef.current.onresult = (event: any) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    if (finalTranscript) {
+                        setInputText(prev => (prev + ' ' + finalTranscript).trim());
+                    }
+                };
+
+                recognitionRef.current.onerror = (event: any) => {
+                    console.error('Speech recognition error', event.error);
+                    setIsRecording(false);
+                };
+
+                recognitionRef.current.onend = () => {
+                    setIsRecording(false);
+                    // Only send if the user explicitly released the button
+                    if (userReleasedRef.current) {
+                        setShouldSendVoice(true);
+                        userReleasedRef.current = false;
+                    }
+                };
+            }
+        }
+    }, []);
+
+    const startRecording = () => {
+        if (!recognitionRef.current) return;
+        userReleasedRef.current = false;
+        try {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        } catch (e) {
+            console.error("Error starting recognition:", e);
+        }
+    };
+
+    const stopRecording = () => {
+        if (!isRecording) return;
+        userReleasedRef.current = true;
+        recognitionRef.current?.stop();
+        setIsRecording(false);
+    };
 
     // Auto-scroll
     const scrollToBottom = () => {
@@ -111,6 +178,14 @@ export const CoachPage: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    // Auto-send effect for voice
+    useEffect(() => {
+        if (shouldSendVoice && inputText.trim()) {
+            handleSend(inputText);
+            setShouldSendVoice(false);
+        }
+    }, [shouldSendVoice, inputText]);
 
     if (!user) {
         return (
@@ -253,6 +328,24 @@ export const CoachPage: React.FC = () => {
                         disabled={isLoading}
                         className="flex-1 bg-gray-100 text-gray-900 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50"
                     />
+
+                    {/* Voice Button (Push to Talk) */}
+                    <button
+                        onMouseDown={startRecording}
+                        onMouseUp={stopRecording}
+                        onMouseLeave={stopRecording}
+                        onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+                        onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
+                        disabled={isLoading}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all select-none ${isRecording
+                            ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg scale-110'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            }`}
+                        title="Mantén pulsado para grabar, suelta para enviar"
+                    >
+                        {isRecording ? <Square size={20} fill="currentColor" /> : <Mic size={20} />}
+                    </button>
+
                     <button
                         onClick={() => handleSend(inputText)}
                         aria-label="Enviar mensaje"

@@ -98,7 +98,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [recurringItems]);
 
   useEffect(() => {
-    localStorage.setItem('savingsGoal', savingsGoal.toString());
+    localStorage.setItem('savingsGoal', JSON.stringify(savingsGoal));
   }, [savingsGoal]);
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [customCategories]);
 
   useEffect(() => {
-    localStorage.setItem('currency', currency);
+    localStorage.setItem('currency', JSON.stringify(currency));
   }, [currency]);
 
   useEffect(() => {

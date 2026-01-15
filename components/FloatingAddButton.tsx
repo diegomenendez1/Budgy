@@ -181,7 +181,12 @@ const FloatingAddButton: React.FC = () => {
                 <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center backdrop-blur-sm animate-fade-in">
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)}></div>
 
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden transition-colors duration-300">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="modal-title"
+                        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden transition-colors duration-300"
+                    >
 
                         {/* Header with Magic Toggle */}
                         <div className="flex justify-between items-center mb-6">
@@ -194,7 +199,7 @@ const FloatingAddButton: React.FC = () => {
                                     <Sparkles size={20} className={isMagicMode ? 'animate-pulse' : ''} />
                                     <span className="text-xs font-bold uppercase tracking-wider">{isMagicMode ? 'Modo Magia' : 'Magia'}</span>
                                 </button>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                <h3 id="modal-title" className="text-xl font-bold text-gray-900 dark:text-white">
                                     {isMagicMode ? 'Registro Inteligente' : (txType === TransactionType.INCOME ? 'Nuevo Ingreso' : 'Nuevo Gasto')}
                                 </h3>
                             </div>
