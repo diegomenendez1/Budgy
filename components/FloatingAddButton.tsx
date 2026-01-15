@@ -42,7 +42,9 @@ const FloatingAddButton: React.FC = () => {
 
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        const numAmount = parseFloat(amount);
+        // Handle comma as decimal separator for flexibility
+        const normalizedAmount = amount.replace(',', '.');
+        const numAmount = parseFloat(normalizedAmount);
         if (isNaN(numAmount) || numAmount <= 0) return;
 
         // Check for Overspending Logic
@@ -185,7 +187,7 @@ const FloatingAddButton: React.FC = () => {
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
-                        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden transition-colors duration-300"
+                        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-y-auto max-h-[90vh] transition-colors duration-300"
                     >
 
                         {/* Header with Magic Toggle */}
@@ -285,14 +287,19 @@ const FloatingAddButton: React.FC = () => {
                                     <div className="relative">
                                         <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${txType === TransactionType.INCOME ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-slate-600'}`}>$</span>
                                         <input
-                                            type="number"
+                                            type="text"
                                             value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
+                                            onChange={(e) => {
+                                                // Allow only numbers, one dot or one comma
+                                                const val = e.target.value;
+                                                if (/^[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                                    setAmount(val);
+                                                }
+                                            }}
                                             className={`w-full text-4xl font-bold border-b-2 border-gray-100 dark:border-slate-800 focus:border-black dark:focus:border-white focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 dark:placeholder:text-slate-800 ${txType === TransactionType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}
                                             placeholder="0"
                                             autoFocus
                                             inputMode="decimal"
-                                            min="0.01"
                                             required
                                         />
                                     </div>

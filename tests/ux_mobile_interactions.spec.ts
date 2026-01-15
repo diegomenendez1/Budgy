@@ -52,7 +52,7 @@ test.describe('Mobile Interaction & Dark Mode Audit', () => {
 
     test('Interaction: Keyboard Simulation Layout', async ({ page }) => {
         await page.getByLabel('Agregar Gasto', { exact: false }).click();
-        const amountInput = page.locator('input[type="number"]');
+        const amountInput = page.locator('input[inputMode="decimal"]');
         await amountInput.click();
 
         // On real devices, keyboard shifts layout. We can check if the modal is still usable.
