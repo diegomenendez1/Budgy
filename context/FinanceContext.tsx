@@ -239,8 +239,21 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setRecurringItems(prev => [...prev, newItem]);
 
     if (user) {
+      const dbItem = {
+        id: newItem.id,
+        description: newItem.description,
+        amount: newItem.amount,
+        type: newItem.type,
+        category: newItem.category,
+        is_installment: newItem.isInstallment,
+        total_installments: newItem.totalInstallments,
+        start_date: newItem.startDate,
+        owner_id: newItem.owner_id,
+        updated_at: newItem.updated_at
+      };
+
       try {
-        const { error } = await supabase.from('recurring_items').insert(newItem);
+        const { error } = await supabase.from('recurring_items').insert(dbItem);
         if (error) throw error;
       } catch (err) {
         console.warn('Queueing recurring item insert due to error:', err);
@@ -248,7 +261,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           id: generateUUID(),
           type: 'INSERT',
           table: 'recurring_items',
-          data: newItem,
+          data: dbItem,
           timestamp: new Date().toISOString()
         }]);
       }
@@ -260,8 +273,21 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setRecurringItems(prev => prev.map(i => i.id === toUpdate.id ? toUpdate : i));
 
     if (user) {
+      const dbItem = {
+        id: toUpdate.id,
+        description: toUpdate.description,
+        amount: toUpdate.amount,
+        type: toUpdate.type,
+        category: toUpdate.category,
+        is_installment: toUpdate.isInstallment,
+        total_installments: toUpdate.totalInstallments,
+        start_date: toUpdate.startDate,
+        owner_id: toUpdate.owner_id,
+        updated_at: toUpdate.updated_at
+      };
+
       try {
-        const { error } = await supabase.from('recurring_items').upsert(toUpdate);
+        const { error } = await supabase.from('recurring_items').upsert(dbItem);
         if (error) throw error;
       } catch (err) {
         console.warn('Queueing recurring item update due to error:', err);
@@ -269,7 +295,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           id: generateUUID(),
           type: 'UPSERT',
           table: 'recurring_items',
-          data: toUpdate,
+          data: dbItem,
           timestamp: new Date().toISOString()
         }]);
       }
@@ -462,9 +488,40 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       else if (resolution === 'UPLOAD') {
         // Force push local to cloud (Caution: Overwrites/Adds?)
         // "Subir mis datos": We assume local is truth. We upsert everything.
-        const txToUpload = transactions.map(t => ({ ...t, owner_id: user.id, updated_at: t.updated_at || new Date().toISOString() }));
-        const recToUpload = recurringItems.map(i => ({ ...i, owner_id: user.id, updated_at: i.updated_at || new Date().toISOString() }));
-        const cyclesToUpload = cycles.map(c => ({ ...c, owner_id: user.id, updated_at: c.updated_at || new Date().toISOString() }));
+        const txToUpload = transactions.map(t => ({
+          id: t.id,
+          description: t.description,
+          amount: t.amount,
+          type: t.type,
+          category: t.category,
+          date: t.date,
+          is_exceptional: t.isExceptional,
+          owner_id: user.id,
+          updated_at: t.updated_at || new Date().toISOString()
+        }));
+        const recToUpload = recurringItems.map(i => ({
+          id: i.id,
+          description: i.description,
+          amount: i.amount,
+          type: i.type,
+          category: i.category,
+          is_installment: i.isInstallment,
+          total_installments: i.totalInstallments,
+          start_date: i.startDate,
+          owner_id: user.id,
+          updated_at: i.updated_at || new Date().toISOString()
+        }));
+        const cyclesToUpload = cycles.map(c => ({
+          id: c.id,
+          name: c.name,
+          start_date: c.startDate,
+          end_date: c.endDate,
+          initial_budget: c.initialBudget,
+          savings_goal: c.savingsGoal,
+          is_active: c.isActive,
+          owner_id: user.id,
+          updated_at: c.updated_at || new Date().toISOString()
+        }));
 
         await supabase.from('transactions').upsert(txToUpload);
         await supabase.from('recurring_items').upsert(recToUpload);
@@ -506,7 +563,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
               mergedTx[localTxIndex] = cTx;
             } else if (localDate > cloudDate) {
               // Local wins, push to cloud later
-              txUpdates.push({ ...localTx, owner_id: user.id });
+              txUpdates.push({
+                id: localTx.id,
+                description: localTx.description,
+                amount: localTx.amount,
+                type: localTx.type,
+                category: localTx.category,
+                date: localTx.date,
+                is_exceptional: localTx.isExceptional,
+                owner_id: user.id,
+                updated_at: localTx.updated_at
+              });
             }
           }
         });
@@ -514,7 +581,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Items that are local only -> Push to cloud
         mergedTx.forEach(l => {
           if (!cloudTx?.some(c => c.id === l.id)) {
-            txUpdates.push({ ...l, owner_id: user.id, updated_at: l.updated_at || new Date().toISOString() });
+            txUpdates.push({
+              id: l.id,
+              description: l.description,
+              amount: l.amount,
+              type: l.type,
+              category: l.category,
+              date: l.date,
+              is_exceptional: l.isExceptional,
+              owner_id: user.id,
+              updated_at: l.updated_at || new Date().toISOString()
+            });
           }
         });
 
@@ -537,14 +614,36 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
             if (cloudDate > localDate) {
               mergedRec[localIndex] = cRec;
             } else if (localDate > cloudDate) {
-              recUpdates.push({ ...localItem, owner_id: user.id });
+              recUpdates.push({
+                id: localItem.id,
+                description: localItem.description,
+                amount: localItem.amount,
+                type: localItem.type,
+                category: localItem.category,
+                is_installment: localItem.isInstallment,
+                total_installments: localItem.totalInstallments,
+                start_date: localItem.startDate,
+                owner_id: user.id,
+                updated_at: localItem.updated_at || new Date().toISOString()
+              });
             }
           }
         });
 
         mergedRec.forEach(l => {
           if (!cloudRec?.some(c => c.id === l.id)) {
-            recUpdates.push({ ...l, owner_id: user.id, updated_at: l.updated_at || new Date().toISOString() });
+            recUpdates.push({
+              id: l.id,
+              description: l.description,
+              amount: l.amount,
+              type: l.type,
+              category: l.category,
+              is_installment: l.isInstallment,
+              total_installments: l.totalInstallments,
+              start_date: l.startDate,
+              owner_id: user.id,
+              updated_at: l.updated_at || new Date().toISOString()
+            });
           }
         });
 
@@ -567,7 +666,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
             if (cloudDate > localDate) {
               mergedCycles[localIndex] = cCycle;
             } else if (localDate > cloudDate) {
-              cycleUpdates.push({ ...localC, owner_id: user.id });
+              cycleUpdates.push({
+                id: localC.id,
+                name: localC.name,
+                start_date: localC.startDate,
+                end_date: localC.endDate,
+                initial_budget: localC.initialBudget,
+                savings_goal: localC.savingsGoal,
+                is_active: localC.isActive,
+                owner_id: user.id,
+                updated_at: localC.updated_at
+              });
             }
           }
         });
@@ -575,7 +684,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Push local-only cycles to cloud
         mergedCycles.forEach(l => {
           if (!cloudCycles?.some(c => c.id === l.id)) {
-            cycleUpdates.push({ ...l, owner_id: user.id, updated_at: l.updated_at || new Date().toISOString() });
+            cycleUpdates.push({
+              id: l.id,
+              name: l.name,
+              start_date: l.startDate,
+              end_date: l.endDate,
+              initial_budget: l.initialBudget,
+              savings_goal: l.savingsGoal,
+              is_active: l.isActive,
+              owner_id: user.id,
+              updated_at: l.updated_at || new Date().toISOString()
+            });
           }
         });
 

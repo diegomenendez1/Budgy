@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Check, ArrowDown, ArrowUp, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Plus, AlertTriangle, Check, ArrowDown, ArrowUp, Sparkles, Loader2, ArrowRight, RefreshCcw } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType } from '../types';
 import { parseTransactionInput } from '../services/geminiService';
@@ -16,6 +16,7 @@ const FloatingAddButton: React.FC = () => {
     const [desc, setDesc] = useState('');
     const [category, setCategory] = useState('');
     const [isExceptional, setIsExceptional] = useState(false);
+    const [isRecurring, setIsRecurring] = useState(false);
 
     // Magic AI State
     const [isMagicMode, setIsMagicMode] = useState(false);
@@ -73,7 +74,6 @@ const FloatingAddButton: React.FC = () => {
                 startDate: new Date().toISOString()
             });
 
-            // 2. Add the FIRST transaction immediately
             addTransaction({
                 description: `${desc || category} (1/${manualInstallmentsCount})`,
                 amount: installmentAmt,
@@ -81,6 +81,26 @@ const FloatingAddButton: React.FC = () => {
                 type: TransactionType.EXPENSE,
                 date: new Date().toISOString(),
                 isExceptional: isExceptional
+            });
+        } else if (txType === TransactionType.EXPENSE && isRecurring) {
+            // Recurring Expense Logic (Subscription)
+            // 1. Add to Recurring Items (Planning)
+            addRecurringItem({
+                description: desc || category,
+                amount: numAmount,
+                type: TransactionType.EXPENSE,
+                category: category,
+                startDate: new Date().toISOString()
+            });
+
+            // 2. Add immediate transaction (Reality)
+            addTransaction({
+                description: desc || category,
+                amount: numAmount,
+                category: category,
+                type: TransactionType.EXPENSE,
+                date: new Date().toISOString(),
+                isExceptional: false // Recurring expenses are not exceptional, they are regular
             });
         } else {
             // Normal One-Time Transaction
@@ -142,6 +162,7 @@ const FloatingAddButton: React.FC = () => {
         setAmount('');
         setDesc('');
         setIsExceptional(false);
+        setIsRecurring(false);
         setIsManualInstallment(false);
         setManualInstallmentsCount(3);
         setIsOpen(false);
@@ -358,6 +379,28 @@ const FloatingAddButton: React.FC = () => {
                                             </div>
                                         </div>
 
+                                        {/* Recurring / Fixed Expense Toggle */}
+                                        <div
+                                            onClick={() => {
+                                                setIsRecurring(!isRecurring);
+                                                if (!isRecurring) setIsExceptional(false); // Recurring cannot be exceptional usually
+                                            }}
+                                            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors mb-2 ${isRecurring ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-900/50' : 'bg-gray-50 dark:bg-slate-800/50 border-transparent'}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-full ${isRecurring ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
+                                                    <RefreshCcw size={18} />
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm font-bold ${isRecurring ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Fijo / Recurrente</p>
+                                                    <p className="text-[10px] text-indigo-600/60 dark:text-indigo-400/60 font-medium">Se repetirá cada mes (Suscripciones, Servicios)</p>
+                                                </div>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isRecurring ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300 dark:border-slate-700'}`}>
+                                                {isRecurring && <div className="w-2 h-2 bg-white rounded-full" />}
+                                            </div>
+                                        </div>
+
                                         {/* Manual Installment Toggle */}
                                         <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800 mb-3">
                                             <div
@@ -365,15 +408,15 @@ const FloatingAddButton: React.FC = () => {
                                                 className="flex items-center justify-between cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`p-2 rounded-full ${isManualInstallment ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
+                                                    <div className={`p-2 rounded-full ${isManualInstallment ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
                                                         <ArrowRight size={18} className={isManualInstallment ? "rotate-45" : ""} />
                                                     </div>
                                                     <div>
-                                                        <p className={`text-sm font-bold ${isManualInstallment ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-slate-300'}`}>Compra a Plazos (MSI)</p>
+                                                        <p className={`text-sm font-bold ${isManualInstallment ? 'text-purple-900 dark:text-purple-100' : 'text-gray-700 dark:text-slate-300'}`}>Compra a Plazos (MSI)</p>
                                                         <p className="text-xs text-gray-500 dark:text-slate-500">Pagar en varias cuotas mensuales</p>
                                                     </div>
                                                 </div>
-                                                <div className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${isManualInstallment ? 'bg-indigo-600 justify-end' : 'bg-gray-300 dark:bg-slate-700 justify-start'}`}>
+                                                <div className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${isManualInstallment ? 'bg-purple-600 justify-end' : 'bg-gray-300 dark:bg-slate-700 justify-start'}`}>
                                                     <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
                                                 </div>
                                             </div>
@@ -388,11 +431,11 @@ const FloatingAddButton: React.FC = () => {
                                                             min="2" max="24" step="1"
                                                             value={manualInstallmentsCount}
                                                             onChange={(e) => setManualInstallmentsCount(parseInt(e.target.value))}
-                                                            className="flex-1 accent-indigo-600 h-2 bg-gray-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                                                            className="flex-1 accent-purple-600 h-2 bg-gray-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
                                                         />
-                                                        <span className="font-black text-indigo-600 dark:text-indigo-400 w-8 text-center">{manualInstallmentsCount}</span>
+                                                        <span className="font-black text-purple-600 dark:text-purple-400 w-8 text-center">{manualInstallmentsCount}</span>
                                                     </div>
-                                                    <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-2 font-medium text-right">
+                                                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-2 font-medium text-right">
                                                         Pagarás <span className="font-bold">${amount ? (parseFloat(amount) / manualInstallmentsCount).toFixed(0) : '0'} / mes</span>
                                                     </p>
                                                 </div>
@@ -400,13 +443,16 @@ const FloatingAddButton: React.FC = () => {
                                         </div>
 
                                         <div
-                                            onClick={() => setIsExceptional(!isExceptional)}
+                                            onClick={() => {
+                                                setIsExceptional(!isExceptional);
+                                                if (!isExceptional) setIsRecurring(false); // Exceptional cannot be recurring
+                                            }}
                                             className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${isExceptional ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/50' : 'bg-gray-50 dark:bg-slate-800/50 border-transparent'}`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`p-2 rounded-full ${isExceptional ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}><AlertTriangle size={18} /></div>
                                                 <div>
-                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900 dark:text-amber-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Único</p>
+                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900 dark:text-amber-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Único / Excepcional</p>
                                                     <p className="text-[10px] text-amber-600/60 dark:text-amber-400/60 font-medium">No afecta tu ritmo diario</p>
                                                 </div>
                                             </div>
