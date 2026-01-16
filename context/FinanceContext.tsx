@@ -420,7 +420,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       // Default merge if no conflict or no legacy data
-      if (!resolution) resolution = 'DOWNLOAD';
+      // CHANGED: We now default to 'MERGE' to preserve local changes that haven't reached the server yet.
+      // 'DOWNLOAD' was causing data loss by overwriting local state with stale server state.
+      if (!resolution) resolution = 'MERGE';
 
       if (resolution === 'DOWNLOAD') {
         // Replace local with cloud, mapping snake_case to camelCase
