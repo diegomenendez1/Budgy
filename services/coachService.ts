@@ -1,4 +1,5 @@
-import { supabase } from '../lib/supabase';
+// import { supabase } from '../lib/supabase';
+import { db } from '../src/db/db';
 
 const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
 
@@ -8,6 +9,14 @@ export interface ChatMessage {
     content: string;
     timestamp: Date;
 }
+
+// Helper to generate UUIDs locally
+const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
 
 export const coachService = {
     // 1. Send message to AI (via n8n)
@@ -38,7 +47,6 @@ export const coachService = {
             }
 
             const text = await response.text();
-            console.log('Coach Raw Response:', text);
 
             if (!text) {
                 return "El asistente recibió tu mensaje pero no envió respuesta (Body vacío). Revisa el nodo Webhook en n8n.";
@@ -60,55 +68,66 @@ export const coachService = {
 
     // 2. Load History for a specific session
     async getHistory(sessionId: string): Promise<ChatMessage[]> {
-        const { data, error } = await supabase
-            .from('chat_messages')
-            .select('*')
-            .eq('session_id', sessionId)
-            .order('created_at', { ascending: true });
+        const messages = await db.chatMessages
+            .where('session_id')
+            .equals(sessionId)
+            .sortBy('created_at');
 
-        if (error) {
-            console.error('Error loading chat history:', error);
-            return [];
-        }
-
-        return data.map((msg: any) => ({
+        return messages.map((msg) => ({
             id: msg.id,
             role: msg.role,
             content: msg.content,
-            timestamp: new Date(msg.created_at)
+            timestamp: new Date(msg.created_at || Date.now())
         }));
     },
 
     // 3. Create or Get active session (Simple version: always one session per user for now)
     async getActiveSession(userId: string) {
-        // Check if user has a session
-        const { data, error } = await supabase
-            .from('chat_sessions')
-            .select('id')
-            .eq('user_id', userId)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .single();
+        // Find most recent session
+        const sessions = await db.chatSessions
+            .where('user_id')
+            .equals(userId)
+            .toArray(); // Dexie Sort logic can be tricky with string keys, so sort in memory for now if small
 
-        if (data) return data.id;
+        // Start with latest
+        const latestInfo = sessions.sort((a, b) =>
+            new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime()
+        )[0];
+
+        if (latestInfo) return latestInfo.id;
 
         // Create new if none
-        const { data: newSession, error: createError } = await supabase
-            .from('chat_sessions')
-            .insert({ user_id: userId, title: 'Coach Chat' })
-            .select('id')
-            .single();
+        const newId = generateUUID();
+        await db.chatSessions.add({
+            id: newId,
+            user_id: userId,
+            title: 'Coach Chat',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        });
 
-        if (createError) throw createError;
-        return newSession.id;
+        return newId;
     },
 
     // 4. Save local message (Optimistic update or fallback)
     async saveMessage(sessionId: string, role: 'user' | 'assistant', content: string) {
-        await supabase.from('chat_messages').insert({
+        await db.chatMessages.add({
+            id: generateUUID(),
             session_id: sessionId,
             role,
-            content
+            content,
+            created_at: new Date().toISOString()
         });
+
+        // Update session timestamp
+        const session = await db.chatSessions.get(sessionId);
+        if (session) {
+            await db.chatSessions.put({
+                ...session,
+                updated_at: new Date().toISOString()
+            });
+        }
     }
 };
+
+

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+// import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
     session: Session | null;
@@ -12,40 +12,34 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    // "Logged in" by default with a local user
+    const [user] = useState<User | null>({
+        id: 'local-user',
+        app_metadata: {},
+        user_metadata: { full_name: 'Local User' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+    } as User);
 
-    useEffect(() => {
-        // Safety timeout to prevent infinite loading
-        const timer = setTimeout(() => {
-            console.warn("Auth timed out - forcing UI load");
-            setLoading(false);
-        }, 3000);
+    const [session] = useState<Session | null>({
+        user: { id: 'local-user' } as User,
+        access_token: 'local-token',
+        refresh_token: 'local-refresh-token',
+        expires_in: 3600,
+        token_type: 'bearer'
+    });
 
-        // 1. Check active session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-        }).catch((err) => {
-            console.error("Auth initialization error:", err);
-        }).finally(() => {
-            setLoading(false);
-            clearTimeout(timer);
-        });
-
-        // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
+    const [loading, setLoading] = useState(false);
 
     const signOut = async () => {
-        await supabase.auth.signOut();
+        // No-op for local mode, or maybe reset local data?
+        // For now, we just reload or do nothing as "Logout" doesn't make sense in offline-first without multi-user
+        if (confirm("Reset local data? This cannot be undone.")) {
+            // Optional: logic to clear DB
+            // await db.delete();
+            // window.location.reload();
+            alert("To reset data, please clear browser data for this site manually for safety.");
+        }
     };
 
     return (
