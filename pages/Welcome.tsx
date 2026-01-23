@@ -49,18 +49,15 @@ const Welcome: React.FC = () => {
                     className="space-y-4"
                 >
                     <Link
-                        to="/register"
+                        to="/dashboard"
                         className="block w-full bg-slate-900 text-white text-center font-semibold py-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all transform active:scale-[0.98]"
                     >
-                        Empezar ahora
+                        Empezar ahora (Modo Local)
                     </Link>
 
-                    <Link
-                        to="/login"
-                        className="block w-full bg-white text-slate-700 text-center font-semibold py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all transform active:scale-[0.98]"
-                    >
-                        Ya tengo cuenta
-                    </Link>
+                    <div className="text-center text-xs text-slate-400 mt-2">
+                        No se requiere cuenta. Tus datos se guardan en este dispositivo.
+                    </div>
                 </motion.div>
 
                 <p className="text-center text-xs text-slate-400 mt-6">

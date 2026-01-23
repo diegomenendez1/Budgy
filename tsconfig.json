@@ -26,5 +26,11 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "tests",
+    "playwright-report",
+    "test-results"
+  ]
 }

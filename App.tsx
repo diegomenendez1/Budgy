@@ -6,8 +6,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import MainAppLayout from './components/MainAppLayout';
 import Welcome from './pages/Welcome';
 import Onboarding from './pages/Onboarding';
-import Login from './pages/Login';
-import Register from './pages/Register';
+// import Login from './pages/Login';
+// import Register from './pages/Register';
 
 // Loading Component
 const LoadingScreen = () => (
@@ -49,8 +49,8 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/welcome" element={<PublicRoute><Welcome /></PublicRoute>} />
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      {/* <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} /> */}
+      {/* <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} /> */}
 
       {/* Protected Routes */}
       <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
