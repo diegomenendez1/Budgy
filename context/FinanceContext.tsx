@@ -40,7 +40,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Since we assume single user locally, we can query all, OR query by the 'local-user' ID we set in AuthContext.
   // For safety, let's just query everything as "My Data" in this local-first world.
 
-  const transactions = useLiveQuery(() => db.transactions.toArray()) || [];
+  const transactions = useLiveQuery(() => db.transactions.orderBy('date').reverse().toArray()) || [];
   const recurringItems = useLiveQuery(() => db.recurringItems.toArray()) || [];
   const cycles = useLiveQuery(() => db.cycles.toArray()) || [];
 
@@ -50,6 +50,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const customCategories = userSettings?.custom_categories || [];
   const savingsGoal = userSettings?.savings_goal || 0;
   const currency = userSettings?.currency || 'USD';
+  const apiKey = userSettings?.openai_api_key || '';
 
   // --- Actions (Dexie) ---
   const addTransaction = async (t: Omit<Transaction, 'id'>) => {
@@ -112,6 +113,19 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       savings_goal: savingsGoal,
       custom_categories: customCategories,
       currency: curr,
+      openai_api_key: apiKey,
+      updated_at: new Date().toISOString()
+    });
+  };
+
+  const setApiKey = async (key: string) => {
+    await db.userSettings.put({
+      id: user?.id || 'local-user',
+      owner_id: user?.id || 'local-user',
+      savings_goal: savingsGoal,
+      custom_categories: customCategories,
+      currency: currency,
+      openai_api_key: key,
       updated_at: new Date().toISOString()
     });
   };
@@ -366,6 +380,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       currentSavingsGoal: savingsGoal,
       setSavingsGoal,
       setCurrency,
+      apiKey,
+      setApiKey,
 
       cycles,
       activeCycle,

@@ -7,43 +7,76 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     signOut: () => Promise<void>;
+    signInAsGuest: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    // "Logged in" by default with a local user
-    const [user] = useState<User | null>({
-        id: 'local-user',
-        app_metadata: {},
-        user_metadata: { full_name: 'Local User' },
-        aud: 'authenticated',
-        created_at: new Date().toISOString()
-    } as User);
+    // State for local user persistence
+    const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const [session] = useState<Session | null>({
-        user: { id: 'local-user' } as User,
-        access_token: 'local-token',
-        refresh_token: 'local-refresh-token',
-        expires_in: 3600,
-        token_type: 'bearer'
-    });
+    useEffect(() => {
+        // Check for existing local user on mount
+        const initAuth = () => {
+            try {
+                const storedUser = localStorage.getItem('budgy_local_user');
+                if (storedUser) {
+                    const parsedUser = JSON.parse(storedUser);
+                    setUser(parsedUser);
+                    setSession({
+                        user: parsedUser,
+                        access_token: 'local-token',
+                        refresh_token: 'local-refresh-token',
+                        expires_in: 3600,
+                        token_type: 'bearer'
+                    });
+                }
+            } catch (error) {
+                console.error("Auth init error", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        initAuth();
+    }, []);
 
-    const [loading, setLoading] = useState(false);
+    const signInAsGuest = async () => {
+        const newUser = {
+            id: 'local-user-' + Date.now(),
+            app_metadata: {},
+            user_metadata: { full_name: 'Usuario Local' },
+            aud: 'authenticated',
+            created_at: new Date().toISOString()
+        } as User;
+
+        const newSession = {
+            user: newUser,
+            access_token: 'local-token-' + Date.now(),
+            refresh_token: 'local-refresh-token',
+            expires_in: 3600,
+            token_type: 'bearer'
+        };
+
+        localStorage.setItem('budgy_local_user', JSON.stringify(newUser));
+        setUser(newUser);
+        setSession(newSession);
+    };
 
     const signOut = async () => {
-        // No-op for local mode, or maybe reset local data?
-        // For now, we just reload or do nothing as "Logout" doesn't make sense in offline-first without multi-user
-        if (confirm("Reset local data? This cannot be undone.")) {
-            // Optional: logic to clear DB
-            // await db.delete();
-            // window.location.reload();
-            alert("To reset data, please clear browser data for this site manually for safety.");
+        if (confirm("¿Estás seguro? Al salir en modo local se borrarán tus datos de este dispositivo si borras el caché.")) {
+            // For now we just 'lock' the app, effectively routing to Welcome
+            // But we DON'T delete the data from DB in this simplified logout
+            localStorage.removeItem('budgy_local_user');
+            setUser(null);
+            setSession(null);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, signOut, signInAsGuest }}>
             {children}
         </AuthContext.Provider>
     );

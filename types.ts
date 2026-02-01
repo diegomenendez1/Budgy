@@ -20,6 +20,7 @@ export interface UserSettings extends BaseEntity {
   custom_categories: string[];
   savings_goal: number;
   currency?: string;
+  openai_api_key?: string;
 }
 
 export interface Transaction extends BaseEntity {
@@ -103,6 +104,8 @@ export interface FinancialContextType {
   currentSavingsGoal: number;
   setSavingsGoal: (amount: number) => void;
   setCurrency: (currency: string) => void;
+  apiKey?: string;
+  setApiKey: (key: string) => void;
 
   // Cycle Management
   cycles: Cycle[];

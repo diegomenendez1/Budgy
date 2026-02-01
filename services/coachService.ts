@@ -19,10 +19,50 @@ const generateUUID = () => {
 };
 
 export const coachService = {
-    // 1. Send message to AI (via n8n)
-    async sendMessage(userId: string, sessionId: string, message: string, dataPacket: any, privacyMode: boolean = false) {
+    // 1. Send message to AI
+    async sendMessage(userId: string, sessionId: string, message: string, dataPacket: any, privacyMode: boolean = false, apiKey?: string) {
+
+        // If an API Key is provided, we use direct OpenAI for a 100% local-to-cloud experience without intermediate servers
+        if (apiKey) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-5-mini', // Confirmed user preference
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `Eres Budgy Coach, un asesor financiero experto. 
+                                Analiza los datos del usuario y responde de forma motivadora y precisa.
+                                Datos actuales: ${JSON.stringify(dataPacket)}
+                                Modo Privacidad: ${privacyMode ? 'SÍ (las descripciones están ocultas)' : 'NO'}`
+                            },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.7,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.text();
+                    throw new Error(`OpenAI_ERROR: ${err}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('Error with direct OpenAI Coach:', error);
+                throw error;
+            }
+        }
+
+        // Fallback or Legacy: Use N8N if no local API key provided
         if (!N8N_WEBHOOK_URL) {
-            throw new Error('CONFIG_ERROR: VITE_N8N_WEBHOOK_URL is missing in .env');
+            throw new Error('CONFIG_ERROR: Configura tu API Key en Ajustes o define VITE_N8N_WEBHOOK_URL.');
         }
 
         const payload = {
@@ -54,14 +94,12 @@ export const coachService = {
 
             try {
                 const data = JSON.parse(text);
-                // Robust parsing
                 return data.text || data.message || data.output || (typeof data === 'string' ? data : JSON.stringify(data));
             } catch (e) {
-                // If response is not JSON (e.g. plain text), return it directly
                 return text;
             }
         } catch (error) {
-            console.error('Error sending message to Coach:', error);
+            console.error('Error sending message to Coach via N8N:', error);
             throw error;
         }
     },

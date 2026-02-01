@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Check, ArrowDown, ArrowUp, Sparkles, Loader2, ArrowRight, RefreshCcw } from 'lucide-react';
+import { Plus, AlertTriangle, Check, Sparkles } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType } from '../types';
-import { parseTransactionInput } from '../services/geminiService';
+import { parseTransactionInput } from '../services/aiService';
+import MagicInput from './transaction/MagicInput';
+import TransactionForm from './transaction/TransactionForm';
 
 const FloatingAddButton: React.FC = () => {
-    const { addTransaction, addRecurringItem, categories, addCategory, activeCycle, cycleMetrics, transferSavingsToBudget } = useFinance();
+    const { addTransaction, addRecurringItem, categories, addCategory, activeCycle, cycleMetrics, transferSavingsToBudget, apiKey } = useFinance();
     const [isOpen, setIsOpen] = useState(false);
 
     // Transaction Type State
@@ -121,7 +123,7 @@ const FloatingAddButton: React.FC = () => {
         if (!magicInput.trim()) return;
         setIsAnalyzing(true);
 
-        const result = await parseTransactionInput(magicInput);
+        const result = await parseTransactionInput(magicInput, apiKey);
         setIsAnalyzing(false);
 
         if (result) {
@@ -193,11 +195,14 @@ const FloatingAddButton: React.FC = () => {
     return (
         <>
             <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-24 right-6 bg-black text-white p-4 rounded-full shadow-xl shadow-black/20 active:scale-95 transition-transform z-[60] hover:bg-gray-800 flex items-center justify-center"
-                aria-label="Agregar Gasto"
+                onClick={() => setIsOpen(!isOpen)}
+                aria-label="Agregar transacción"
+                className={`
+                    fixed bottom-24 right-6 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 z-50
+                    ${isOpen ? 'bg-black text-white rotate-45 scale-90' : 'bg-black text-white hover:scale-105 active:scale-95'}
+                `}
             >
-                <Plus size={28} strokeWidth={2.5} />
+                <Plus size={32} strokeWidth={2.5} />
             </button>
 
             {isOpen && (
@@ -255,219 +260,38 @@ const FloatingAddButton: React.FC = () => {
                                 </div>
                             </div>
                         ) : isMagicMode ? (
-                            /* MAGIC INPUT MODE */
-                            <div className="space-y-4 animate-in">
-                                <div className="relative">
-                                    <textarea
-                                        value={magicInput}
-                                        onChange={(e) => setMagicInput(e.target.value)}
-                                        placeholder="Ej: Compré zapatos en Zara por $2000 a 3 meses sin intereses..."
-                                        className="w-full p-4 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-lg font-medium resize-none h-32 text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-800"
-                                        autoFocus
-                                    />
-                                    <div className="absolute bottom-3 right-3">
-                                        <Sparkles size={16} className="text-indigo-300" />
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={handleMagicAnalyze}
-                                    disabled={isAnalyzing || !magicInput.trim()}
-                                    className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isAnalyzing ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
-                                    {isAnalyzing ? 'Analizando...' : 'Procesar con IA'}
-                                </button>
-                                <p className="text-center text-xs text-gray-400 dark:text-slate-500">
-                                    Detecta automáticamente plazos (MSI), categorías y montos.
-                                </p>
-                            </div>
+                            <MagicInput
+                                magicInput={magicInput}
+                                setMagicInput={setMagicInput}
+                                handleMagicAnalyze={handleMagicAnalyze}
+                                isAnalyzing={isAnalyzing}
+                            />
                         ) : (
-                            /* NORMAL FORM MODE */
-                            <form onSubmit={handleSubmit} className="space-y-5 animate-in">
-
-                                {/* Type Switcher */}
-                                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl">
-                                    <button
-                                        type="button"
-                                        onClick={() => setTxType(TransactionType.EXPENSE)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-500 dark:text-slate-500'}`}
-                                    >
-                                        <ArrowUp size={16} /> Gasto
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTxType(TransactionType.INCOME)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${txType === TransactionType.INCOME ? 'bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 shadow-sm' : 'text-gray-500 dark:text-slate-500'}`}
-                                    >
-                                        <ArrowDown size={16} /> Ingreso
-                                    </button>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-1">Monto</label>
-                                    <div className="relative">
-                                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${txType === TransactionType.INCOME ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-slate-600'}`}>$</span>
-                                        <input
-                                            type="text"
-                                            value={amount}
-                                            onChange={(e) => {
-                                                // Allow only numbers, one dot or one comma
-                                                const val = e.target.value;
-                                                if (/^[0-9]*[.,]?[0-9]*$/.test(val)) {
-                                                    setAmount(val);
-                                                }
-                                            }}
-                                            className={`w-full text-4xl font-bold border-b-2 border-gray-100 dark:border-slate-800 focus:border-black dark:focus:border-white focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 dark:placeholder:text-slate-800 ${txType === TransactionType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}
-                                            placeholder="0"
-                                            autoFocus
-                                            inputMode="decimal"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-2">Descripción</label>
-                                    <input
-                                        type="text"
-                                        value={desc}
-                                        onChange={(e) => setDesc(e.target.value)}
-                                        className="w-full p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5 font-medium text-lg text-gray-900 dark:text-white"
-                                        placeholder={txType === TransactionType.INCOME ? "Venta, Regalo..." : "¿En qué gastaste?"}
-                                    />
-                                </div>
-
-                                {txType === TransactionType.EXPENSE && (
-                                    <>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-500 dark:text-slate-400 mb-2">Categoría</label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {categories.map(c => (
-                                                    <button
-                                                        key={c}
-                                                        type="button"
-                                                        onClick={() => setCategory(c)}
-                                                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${category === c ? 'bg-black dark:bg-white text-white dark:text-black shadow-md transform scale-105' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
-                                                    >
-                                                        {c}
-                                                    </button>
-                                                ))}
-
-                                                {isAddingCategory ? (
-                                                    <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-full px-2 pl-3 py-1">
-                                                        <input
-                                                            value={newCategoryName}
-                                                            onChange={(e) => setNewCategoryName(e.target.value)}
-                                                            onBlur={handleAddNewCategory}
-                                                            onKeyDown={(e) => e.key === 'Enter' && handleAddNewCategory()}
-                                                            className="bg-transparent border-none focus:outline-none text-sm font-bold text-gray-900 dark:text-white w-24"
-                                                            placeholder="Nueva..."
-                                                            autoFocus
-                                                        />
-                                                        <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-black dark:bg-white text-white dark:text-black p-1 rounded-full ml-1"><Check size={12} /></button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setIsAddingCategory(true)}
-                                                        aria-label="Agregar nueva categoría"
-                                                        className="px-3 py-2 rounded-full text-sm font-bold bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:bg-gray-200 dark:hover:bg-slate-700 border border-dashed border-gray-300 dark:border-slate-700"
-                                                    >
-                                                        <Plus size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Recurring / Fixed Expense Toggle */}
-                                        <div
-                                            onClick={() => {
-                                                setIsRecurring(!isRecurring);
-                                                if (!isRecurring) setIsExceptional(false); // Recurring cannot be exceptional usually
-                                            }}
-                                            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors mb-2 ${isRecurring ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-900/50' : 'bg-gray-50 dark:bg-slate-800/50 border-transparent'}`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-full ${isRecurring ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
-                                                    <RefreshCcw size={18} />
-                                                </div>
-                                                <div>
-                                                    <p className={`text-sm font-bold ${isRecurring ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Fijo / Recurrente</p>
-                                                    <p className="text-[10px] text-indigo-600/60 dark:text-indigo-400/60 font-medium">Se repetirá cada mes (Suscripciones, Servicios)</p>
-                                                </div>
-                                            </div>
-                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isRecurring ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300 dark:border-slate-700'}`}>
-                                                {isRecurring && <div className="w-2 h-2 bg-white rounded-full" />}
-                                            </div>
-                                        </div>
-
-                                        {/* Manual Installment Toggle */}
-                                        <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800 mb-3">
-                                            <div
-                                                onClick={() => setIsManualInstallment(!isManualInstallment)}
-                                                className="flex items-center justify-between cursor-pointer"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`p-2 rounded-full ${isManualInstallment ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
-                                                        <ArrowRight size={18} className={isManualInstallment ? "rotate-45" : ""} />
-                                                    </div>
-                                                    <div>
-                                                        <p className={`text-sm font-bold ${isManualInstallment ? 'text-purple-900 dark:text-purple-100' : 'text-gray-700 dark:text-slate-300'}`}>Compra a Plazos (MSI)</p>
-                                                        <p className="text-xs text-gray-500 dark:text-slate-500">Pagar en varias cuotas mensuales</p>
-                                                    </div>
-                                                </div>
-                                                <div className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${isManualInstallment ? 'bg-purple-600 justify-end' : 'bg-gray-300 dark:bg-slate-700 justify-start'}`}>
-                                                    <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
-                                                </div>
-                                            </div>
-
-                                            {/* Installment Details (Collapsible) */}
-                                            {isManualInstallment && (
-                                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 animate-in pl-11">
-                                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">¿A cuántos meses?</label>
-                                                    <div className="flex items-center gap-3">
-                                                        <input
-                                                            type="range"
-                                                            min="2" max="24" step="1"
-                                                            value={manualInstallmentsCount}
-                                                            onChange={(e) => setManualInstallmentsCount(parseInt(e.target.value))}
-                                                            className="flex-1 accent-purple-600 h-2 bg-gray-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                                                        />
-                                                        <span className="font-black text-purple-600 dark:text-purple-400 w-8 text-center">{manualInstallmentsCount}</span>
-                                                    </div>
-                                                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-2 font-medium text-right">
-                                                        Pagarás <span className="font-bold">${amount ? (parseFloat(amount) / manualInstallmentsCount).toFixed(0) : '0'} / mes</span>
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div
-                                            onClick={() => {
-                                                setIsExceptional(!isExceptional);
-                                                if (!isExceptional) setIsRecurring(false); // Exceptional cannot be recurring
-                                            }}
-                                            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${isExceptional ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/50' : 'bg-gray-50 dark:bg-slate-800/50 border-transparent'}`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-full ${isExceptional ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}><AlertTriangle size={18} /></div>
-                                                <div>
-                                                    <p className={`text-sm font-bold ${isExceptional ? 'text-amber-900 dark:text-amber-100' : 'text-gray-700 dark:text-slate-300'}`}>Gasto Único / Excepcional</p>
-                                                    <p className="text-[10px] text-amber-600/60 dark:text-amber-400/60 font-medium">No afecta tu ritmo diario</p>
-                                                </div>
-                                            </div>
-                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isExceptional ? 'border-amber-500 bg-amber-500' : 'border-gray-300 dark:border-slate-700'}`}>{isExceptional && <div className="w-2 h-2 bg-white rounded-full" />}</div>
-                                        </div>
-                                    </>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className={`w-full font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all text-lg mt-2 ${txType === TransactionType.INCOME ? 'bg-green-600 text-white shadow-green-500/30' : 'bg-ios-blue text-white shadow-blue-500/30'}`}
-                                >
-                                    {txType === TransactionType.INCOME ? 'Registrar Ingreso' : 'Agregar Gasto'}
-                                </button>
-                            </form>
+                            <TransactionForm
+                                handleSubmit={handleSubmit}
+                                txType={txType}
+                                setTxType={setTxType}
+                                amount={amount}
+                                setAmount={setAmount}
+                                desc={desc}
+                                setDesc={setDesc}
+                                categories={categories}
+                                category={category}
+                                setCategory={setCategory}
+                                isAddingCategory={isAddingCategory}
+                                setIsAddingCategory={setIsAddingCategory}
+                                newCategoryName={newCategoryName}
+                                setNewCategoryName={setNewCategoryName}
+                                handleAddNewCategory={handleAddNewCategory}
+                                isRecurring={isRecurring}
+                                setIsRecurring={setIsRecurring}
+                                isExceptional={isExceptional}
+                                setIsExceptional={setIsExceptional}
+                                isManualInstallment={isManualInstallment}
+                                setIsManualInstallment={setIsManualInstallment}
+                                manualInstallmentsCount={manualInstallmentsCount}
+                                setManualInstallmentsCount={setManualInstallmentsCount}
+                            />
                         )}
 
                     </div>

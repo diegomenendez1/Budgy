@@ -1,9 +1,17 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Welcome: React.FC = () => {
     const shouldReduceMotion = useReducedMotion();
+    const navigate = useNavigate();
+    const { signInAsGuest } = useAuth();
+
+    const handleStart = async () => {
+        await signInAsGuest();
+        navigate('/onboarding');
+    };
 
     return (
         <div className="min-h-screen bg-white flex flex-col justify-between relative overflow-hidden">
@@ -48,12 +56,12 @@ const Welcome: React.FC = () => {
                     transition={{ delay: shouldReduceMotion ? 0 : 0.3, duration: shouldReduceMotion ? 0.2 : 0.8 }}
                     className="space-y-4"
                 >
-                    <Link
-                        to="/dashboard"
+                    <button
+                        onClick={handleStart}
                         className="block w-full bg-slate-900 text-white text-center font-semibold py-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all transform active:scale-[0.98]"
                     >
                         Empezar ahora (Modo Local)
-                    </Link>
+                    </button>
 
                     <div className="text-center text-xs text-slate-400 mt-2">
                         No se requiere cuenta. Tus datos se guardan en este dispositivo.

@@ -18,7 +18,7 @@ const QUICK_ACTIONS = [
 
 export const CoachPage: React.FC = () => {
     const { user } = useAuth();
-    const { generateDataPacket } = useFinance();
+    const { generateDataPacket, apiKey } = useFinance();
 
     // State
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -159,8 +159,8 @@ export const CoachPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // 2. Send to N8N (Service handles logic)
-            const responseText = await coachService.sendMessage(user.id, sessionId, text, context, privacyMode);
+            // 2. Send to AI (Service handles logic: Direct OpenAI or N8N)
+            const responseText = await coachService.sendMessage(user.id, sessionId, text, context, privacyMode, apiKey);
 
             // 3. Add AI Response
             const aiMsg: ChatMessage = {
