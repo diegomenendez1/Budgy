@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Transaction, TransactionType } from '../types';
-import { RefreshCcw } from 'lucide-react';
+import { Transaction } from '../types';
+import { RefreshCcw, Settings, AlertTriangle } from 'lucide-react';
 
 // Components
 import CycleCard from '../components/budget/CycleCard';
@@ -11,7 +11,6 @@ import CycleModal from '../components/budget/modals/CycleModal';
 import EditTransactionModal from '../components/budget/modals/EditTransactionModal';
 import DeleteConfirmationModal from '../components/budget/modals/DeleteConfirmationModal';
 import SettingsModal from '../components/budget/modals/SettingsModal';
-import { Settings } from 'lucide-react';
 
 const Budget: React.FC = () => {
   const {
@@ -55,6 +54,7 @@ const Budget: React.FC = () => {
   const outOfCycleTransactions = activeCycle ? transactions.filter(t => !displayTransactions.find(dt => dt.id === t.id)) : [];
 
   const handleEditSavings = () => {
+    // In a real mobile app, use a custom modal instead of prompt
     const newGoal = prompt("Define tu meta de ahorro para este ciclo:", currentSavingsGoal.toString());
     if (newGoal !== null && !isNaN(parseFloat(newGoal))) {
       setSavingsGoal(parseFloat(newGoal));
@@ -88,15 +88,17 @@ const Budget: React.FC = () => {
   if (!activeCycle) {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-[70vh] text-center px-6">
-          <div className="bg-gray-100 p-4 rounded-full mb-4 text-gray-600">
-            <RefreshCcw size={32} />
+        <div className="flex flex-col items-center justify-center h-[70vh] text-center px-6 animate-in zoom-in-95 duration-500">
+          <div className="bg-muted p-5 rounded-full mb-6 text-muted-foreground shadow-inner">
+            <RefreshCcw size={40} strokeWidth={1.5} />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Sin Ciclo Activo</h2>
-          <p className="text-gray-700 text-sm mb-6">Comienza un nuevo ciclo para rastrear tus gastos y metas.</p>
+          <h2 className="text-2xl font-black text-foreground mb-3 tracking-tight">Sin Ciclo Activo</h2>
+          <p className="text-muted-foreground text-sm mb-8 max-w-[280px] leading-relaxed">
+            Comienza un nuevo ciclo financiero para rastrear tus gastos y proteger tu dinero.
+          </p>
           <button
             onClick={() => setIsCycleModalOpen(true)}
-            className="bg-black text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-gray-200 active:scale-95 transition-transform"
+            className="bg-primary text-primary-foreground px-8 py-4 rounded-[1.25rem] font-bold shadow-lg shadow-primary/25 active:scale-95 transition-all hover:bg-primary/90"
           >
             Iniciar Nuevo Ciclo
           </button>
@@ -106,11 +108,11 @@ const Budget: React.FC = () => {
         {/* Fallback for transactions without cycle */}
         {
           transactions.length > 0 && (
-            <div className="px-4 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="flex items-center gap-2 mb-4 opacity-50">
-                <div className="h-px bg-gray-300 flex-1"></div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Historial Reciente (Sin Ciclo)</span>
-                <div className="h-px bg-gray-300 flex-1"></div>
+            <div className="px-4 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-center gap-4 mb-6 opacity-60">
+                <div className="h-px bg-border flex-1"></div>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Reciente (Sin Ciclo)</span>
+                <div className="h-px bg-border flex-1"></div>
               </div>
               <TransactionList
                 displayTransactions={transactions.slice(0, 5)}
@@ -136,13 +138,19 @@ const Budget: React.FC = () => {
   }
 
   return (
-    <div className="animate-in space-y-6 pt-2 relative">
-      <button
-        onClick={() => setIsSettingsModalOpen(true)}
-        className="absolute top-0 right-2 z-10 p-2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
-      >
-        <Settings size={20} />
-      </button>
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6 pt-4 relative pb-24">
+      <header className="px-2 flex justify-between items-start mb-2">
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Presupuesto</h1>
+          <p className="text-muted-foreground text-sm font-medium">Control total en tus manos</p>
+        </div>
+        <button
+          onClick={() => setIsSettingsModalOpen(true)}
+          className="p-3 bg-card border border-border/50 rounded-2xl shadow-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all active:scale-95"
+        >
+          <Settings size={20} />
+        </button>
+      </header>
 
       <CycleCard
         activeCycle={activeCycle}
@@ -173,18 +181,25 @@ const Budget: React.FC = () => {
 
       {/* Out of Cycle Warning Section */}
       {outOfCycleTransactions.length > 0 && (
-        <div className="px-4 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-2xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2 text-amber-700 dark:text-amber-400 font-bold text-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              Transacciones Fuera de Ciclo
+        <div className="px-1 py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[1.5rem] p-5 mb-4">
+            <div className="flex items-center gap-3 mb-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
+              <div className="bg-amber-500/20 p-1.5 rounded-lg">
+                <AlertTriangle size={16} />
+              </div>
+              <span className="tracking-tight">Movimientos Fuera de Ciclo</span>
             </div>
-            <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mb-0">
-              Estas transacciones tienen una fecha que no coincide con el ciclo activo ({new Date(activeCycle?.startDate!).toLocaleDateString()} - {new Date(activeCycle?.endDate!).toLocaleDateString()}).
+            <p className="text-xs text-muted-foreground/80 leading-relaxed font-medium pl-1">
+              Transacciones con fecha distinta al ciclo activo.
+              <br />
+              <span className="opacity-70 text-[10px] mt-1 block font-mono">
+                Ciclo: {new Date(activeCycle?.startDate!).toLocaleDateString()} - {new Date(activeCycle?.endDate!).toLocaleDateString()}
+              </span>
             </p>
           </div>
 
-          <div className="opacity-70 grayscale-[0.3]">
+          <div className="opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 transition-all duration-300">
+            <div className="bg-muted h-px w-full mb-6"></div>
             <TransactionList
               displayTransactions={outOfCycleTransactions}
               currency={currency}

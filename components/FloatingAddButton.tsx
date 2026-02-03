@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Check, Sparkles } from 'lucide-react';
+import { Plus, AlertTriangle, Check, Sparkles, X } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType } from '../types';
 import { parseTransactionInput } from '../services/aiService';
 import MagicInput from './transaction/MagicInput';
 import TransactionForm from './transaction/TransactionForm';
+import { cn } from '../lib/utils';
 
 const FloatingAddButton: React.FC = () => {
     const { addTransaction, addRecurringItem, categories, addCategory, activeCycle, cycleMetrics, transferSavingsToBudget, apiKey } = useFinance();
@@ -45,12 +46,10 @@ const FloatingAddButton: React.FC = () => {
 
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        // Handle comma as decimal separator for flexibility
         const normalizedAmount = amount.replace(',', '.');
         const numAmount = parseFloat(normalizedAmount);
         if (isNaN(numAmount) || numAmount <= 0) return;
 
-        // Check for Overspending Logic
         if (
             txType === TransactionType.EXPENSE &&
             activeCycle &&
@@ -62,11 +61,8 @@ const FloatingAddButton: React.FC = () => {
             return;
         }
 
-        // Installment Logic
         if (txType === TransactionType.EXPENSE && isManualInstallment && manualInstallmentsCount > 1) {
             const installmentAmt = numAmount / manualInstallmentsCount;
-
-            // 1. Create the Recurring Item (The Debt Plan)
             addRecurringItem({
                 description: `${desc || category} (Cuota)`,
                 amount: installmentAmt,
@@ -85,8 +81,6 @@ const FloatingAddButton: React.FC = () => {
                 isExceptional: isExceptional
             });
         } else if (txType === TransactionType.EXPENSE && isRecurring) {
-            // Recurring Expense Logic (Subscription)
-            // 1. Add to Recurring Items (Planning)
             addRecurringItem({
                 description: desc || category,
                 amount: numAmount,
@@ -95,17 +89,15 @@ const FloatingAddButton: React.FC = () => {
                 startDate: new Date().toISOString()
             });
 
-            // 2. Add immediate transaction (Reality)
             addTransaction({
                 description: desc || category,
                 amount: numAmount,
                 category: category,
                 type: TransactionType.EXPENSE,
                 date: new Date().toISOString(),
-                isExceptional: false // Recurring expenses are not exceptional, they are regular
+                isExceptional: false
             });
         } else {
-            // Normal One-Time Transaction
             addTransaction({
                 description: desc || (txType === TransactionType.INCOME ? 'Ingreso Extra' : category),
                 amount: numAmount,
@@ -128,7 +120,6 @@ const FloatingAddButton: React.FC = () => {
 
         if (result) {
             if (result.isInstallment && result.totalInstallments > 1) {
-                // It's an installment plan! Add to Recurring Items (Managed Debt)
                 const installmentAmt = result.amount / result.totalInstallments;
                 addRecurringItem({
                     description: `${result.description} (Cuota)`,
@@ -138,7 +129,6 @@ const FloatingAddButton: React.FC = () => {
                     totalInstallments: result.totalInstallments,
                     startDate: result.startDate || new Date().toISOString()
                 });
-                // Also add the FIRST transaction immediately so it reflects in today's cash
                 addTransaction({
                     description: `${result.description} (1/${result.totalInstallments})`,
                     amount: installmentAmt,
@@ -147,7 +137,6 @@ const FloatingAddButton: React.FC = () => {
                     date: new Date().toISOString()
                 });
             } else {
-                // Normal transaction
                 addTransaction({
                     description: result.description,
                     amount: result.amount,
@@ -193,68 +182,82 @@ const FloatingAddButton: React.FC = () => {
     };
 
     return (
-        <>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label="Agregar transacción"
-                className={`
-                    fixed bottom-24 right-6 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 z-50
-                    ${isOpen ? 'bg-black text-white rotate-45 scale-90' : 'bg-black text-white hover:scale-105 active:scale-95'}
-                `}
-            >
-                <Plus size={32} strokeWidth={2.5} />
-            </button>
+        <div className={cn("fixed bottom-[calc(5rem+var(--sab))] right-4 z-40 pointer-events-none")}>
+            <div className="mx-auto max-w-lg pointer-events-none relative h-full">
+                {/* Floating Button Container - relative to max-w-lg to align with app width */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    aria-label="Agregar transacción"
+                    className={cn(
+                        "absolute right-0 bottom-0 pointer-events-auto",
+                        "w-14 h-14 rounded-full shadow-lg shadow-primary/20 flex items-center justify-center transition-all duration-300",
+                        isOpen
+                            ? "bg-foreground text-background rotate-45 scale-90"
+                            : "bg-primary text-primary-foreground hover:scale-105 active:scale-95"
+                    )}
+                >
+                    <Plus size={28} strokeWidth={2.5} />
+                </button>
+            </div>
 
             {isOpen && (
-                <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center backdrop-blur-sm animate-fade-in">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center animate-fade-in pointer-events-auto">
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)}></div>
 
                     <div
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
-                        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-y-auto max-h-[90vh] transition-colors duration-300"
+                        className={cn(
+                            "bg-card text-card-foreground w-full max-w-md p-6 shadow-2xl relative z-10",
+                            "overflow-y-auto max-h-[85vh] transition-all duration-300 border border-border/50",
+                            "rounded-t-[2rem] sm:rounded-[2rem] pb-safe-nav sm:pb-6", // Mobile bottom sheet style
+                            "animate-in slide-in-bottom duration-300"
+                        )}
                     >
 
-                        {/* Header with Magic Toggle */}
+                        {/* Header */}
                         <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setIsMagicMode(!isMagicMode)}
-                                    aria-label={isMagicMode ? "Desactivar Modo Magia" : "Activar Modo Magia"}
-                                    className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isMagicMode ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100'}`}
+                                    className={cn(
+                                        "p-2 rounded-xl transition-all flex items-center gap-2 border",
+                                        isMagicMode
+                                            ? "bg-primary/10 text-primary border-primary/20"
+                                            : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
+                                    )}
                                 >
-                                    <Sparkles size={20} className={isMagicMode ? 'animate-pulse' : ''} />
-                                    <span className="text-xs font-bold uppercase tracking-wider">{isMagicMode ? 'Modo Magia' : 'Magia'}</span>
+                                    <Sparkles size={18} className={isMagicMode ? 'animate-pulse' : ''} />
+                                    <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">{isMagicMode ? 'Modo Magia' : 'Magia'}</span>
                                 </button>
-                                <h3 id="modal-title" className="text-xl font-bold text-gray-900 dark:text-white">
-                                    {isMagicMode ? 'Registro Inteligente' : (txType === TransactionType.INCOME ? 'Nuevo Ingreso' : 'Nuevo Gasto')}
+                                <h3 id="modal-title" className="text-lg font-bold tracking-tight">
+                                    {isMagicMode ? 'Registro IA' : (txType === TransactionType.INCOME ? 'Nuevo Ingreso' : 'Nuevo Gasto')}
                                 </h3>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                aria-label="Cancelar y cerrar"
-                                className="text-gray-500 dark:text-slate-400 font-medium p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                                aria-label="Cerrar"
+                                className="text-muted-foreground p-2 hover:bg-muted rounded-full transition-colors"
                             >
-                                Cancelar
+                                <X size={20} />
                             </button>
                         </div>
 
                         {showSavingsAlert ? (
-                            /* ... Savings Alert ... */
                             <div className="animate-in flex flex-col items-center text-center pt-2">
-                                <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-4 text-amber-600 dark:text-amber-400 shadow-lg shadow-amber-500/20">
+                                <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-4 text-amber-600 dark:text-amber-400">
                                     <AlertTriangle size={32} strokeWidth={2.5} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">Presupuesto Excedido</h3>
-                                <p className="text-gray-500 dark:text-slate-400 mb-6 text-sm px-4">
+                                <h3 className="text-xl font-bold mb-2">Presupuesto Excedido</h3>
+                                <p className="text-muted-foreground mb-6 text-sm">
                                     Este gasto supera tu disponible actual.
                                 </p>
                                 <div className="w-full space-y-3">
-                                    <button onClick={handleUseSavings} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-blue-500/30">
-                                        <Check size={20} /> Usar ahorros
+                                    <button onClick={handleUseSavings} className="w-full bg-primary text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                                        <Check size={18} /> Usar ahorros
                                     </button>
-                                    <button onClick={() => handleSubmit()} className="w-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 font-bold py-3 rounded-2xl">
+                                    <button onClick={() => handleSubmit()} className="w-full bg-secondary text-secondary-foreground font-semibold py-3.5 rounded-xl active:scale-[0.98] transition-transform">
                                         Continuar igual
                                     </button>
                                 </div>
@@ -297,7 +300,7 @@ const FloatingAddButton: React.FC = () => {
                     </div>
                 </div >
             )}
-        </>
+        </div>
     );
 };
 

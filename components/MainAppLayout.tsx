@@ -7,6 +7,7 @@ import Budget from '../pages/Budget';
 import Planning from '../pages/Planning';
 import Insights from '../pages/Insights';
 import CoachPage from '../pages/Coach';
+import { cn } from '../lib/utils';
 
 const MainAppLayout: React.FC = () => {
     const [currentTab, setCurrentTab] = useState('dashboard');
@@ -26,25 +27,29 @@ const MainAppLayout: React.FC = () => {
     const showFloatingButton = ['dashboard', 'budget', 'planning', 'insights', 'coach'].includes(currentTab);
 
     return (
-        <div className="min-h-screen bg-[#F2F2F7] dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans selection:bg-blue-200/50 transition-colors duration-300">
-            <main className="max-w-md mx-auto min-h-screen relative">
-                <div className="pt-safe pb-safe-nav px-5">
+        <div className="min-h-screen bg-background text-foreground font-sans transition-colors duration-300 overflow-x-hidden">
+            <main className={cn(
+                "mx-auto w-full max-w-lg min-h-screen relative bg-background",
+                "shadow-2xl shadow-black/5 dark:shadow-black/20"
+            )}>
+                <div className="pt-safe pb-safe-nav px-4 sm:px-6">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentTab}
-                            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
-                            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
-                            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
+                            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }} // Updated to match Apple human interface guidelines ease
+                            className="h-full"
                         >
                             {renderPage()}
                         </motion.div>
                     </AnimatePresence>
                 </div>
-            </main>
 
-            {showFloatingButton && <FloatingAddButton />}
-            <TabBar currentTab={currentTab} setTab={setCurrentTab} />
+                {showFloatingButton && <FloatingAddButton />}
+                <TabBar currentTab={currentTab} setTab={setCurrentTab} />
+            </main>
         </div>
     );
 };

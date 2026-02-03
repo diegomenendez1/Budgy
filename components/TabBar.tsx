@@ -1,4 +1,7 @@
+import React from 'react';
 import { LayoutDashboard, Wallet, CalendarRange, Sparkles, Bot } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '../lib/utils';
 
 interface TabBarProps {
   currentTab: string;
@@ -15,26 +18,58 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-gray-200 dark:border-slate-800 pb-safe pt-2 px-6 z-50 transition-colors duration-300">
-      <div className="flex justify-between items-center max-w-md mx-auto">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setTab(tab.id)}
-              aria-label={tab.label}
-              className={`flex flex-col items-center gap-1 w-16 py-2 transition-colors duration-200 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-slate-400'
-                }`}
-            >
-              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium" aria-hidden="true">{tab.label}</span>
-            </button>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+      {/* Inner container to center the tab bar and apply constraints */}
+      <div className="mx-auto max-w-lg pointer-events-auto">
+        <div className={cn(
+          "glass border-t border-white/20 dark:border-white/5 pb-safe pt-2 px-2 transition-all duration-300",
+          "bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60"
+        )}>
+          <div className="flex justify-around items-center">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTab(tab.id)}
+                  aria-label={tab.label}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    "group relative flex flex-col items-center justify-center w-16 h-[3.25rem]",
+                    "active:scale-95 transition-transform duration-100 ease-in-out"
+                  )}
+                >
+                  {/* Active Indicator Background (Optional subtle glow) */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="tab-indicator"
+                      className="absolute -top-2 w-8 h-1 bg-primary rounded-full shadow-[0_2px_10px] shadow-primary/50"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+
+                  <div className={cn(
+                    "relative p-1 rounded-xl transition-colors duration-300",
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className="transition-all duration-300" />
+                  </div>
+
+                  <span className={cn(
+                    "text-[10px] font-medium tracking-tight mt-0.5 transition-colors duration-300",
+                    isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 };
 
