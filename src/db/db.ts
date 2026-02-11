@@ -30,10 +30,10 @@ export class BudgyDatabase extends Dexie {
 
         // Schema definition
         // &id = unique primary key (string UUID)
-        this.version(1).stores({
-            transactions: '&id, date, type, category',
-            recurringItems: '&id, type, category',
-            cycles: '&id, isActive',
+        this.version(2).stores({
+            transactions: '&id, owner_id, date, type, category',
+            recurringItems: '&id, owner_id, type, category',
+            cycles: '&id, owner_id, isActive',
             userSettings: '&owner_id',
             chatSessions: '&id, user_id, updated_at',
             chatMessages: '&id, session_id, created_at'

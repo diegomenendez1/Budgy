@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             refresh_token: 'local-refresh-token',
             expires_in: 3600,
             token_type: 'bearer'
-        };
+        } as unknown as Session;
 
         localStorage.setItem('budgy_local_user', JSON.stringify(newUser));
         setUser(newUser);

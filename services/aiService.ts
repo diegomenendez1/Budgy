@@ -1,13 +1,10 @@
 import { Transaction, RecurringItem, TransactionType } from '../types';
+import { AIParseResultSchema } from '../src/lib/validation';
+import { z } from 'zod';
 
 // Local-first service: Key is passed from the component (Context), not hardcoded.
 // Uses direct Fetch to OpenAI to avoid backend dependency.
 // MODEL: gpt-5-mini
-
-interface AiResponse {
-    result: string | null;
-    error?: string;
-}
 
 const SYSTEM_PROMPT_ANALYZE = `
 Como estratega financiero de élite, analiza el siguiente perfil financiero (JSON).
@@ -37,7 +34,6 @@ Reglas de Extracción:
    - Si es a plazos:
      - "isInstallment": true
      - "totalInstallments": número de cuotas (default 1 si no se especifica)
-     - "installmentAmount": monto calculada por cuota
      - "startDate": fecha ISO de hoy
      
 Formato JSON esperado (SOLO JSON, sin markdown):
@@ -105,7 +101,7 @@ export const analyzeFinances = async (
     }
 };
 
-export const parseTransactionInput = async (input: string, apiKey: string): Promise<any> => {
+export const parseTransactionInput = async (input: string, apiKey: string): Promise<z.infer<typeof AIParseResultSchema> | null> => {
     if (!apiKey) return null;
 
     try {
@@ -116,7 +112,7 @@ export const parseTransactionInput = async (input: string, apiKey: string): Prom
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-5-mini',
+                model: 'gpt-5-mini', // Confirmed
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT_PARSE },
                     { role: 'user', content: `Texto: "${input}"` }
@@ -133,7 +129,16 @@ export const parseTransactionInput = async (input: string, apiKey: string): Prom
         const data = await response.json();
         const text = data.choices[0].message.content || "{}";
         const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleanJson);
+
+        const parsed = JSON.parse(cleanJson);
+        const validated = AIParseResultSchema.safeParse(parsed);
+
+        if (!validated.success) {
+            console.error("AI Parse Validation Error:", validated.error);
+            return null;
+        }
+
+        return validated.data;
     } catch (err) {
         console.error("AI Parse Exception:", err);
         return null;
