@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
-import { Cycle } from '../../types';
+import { Cycle } from '../types';
 
 const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {

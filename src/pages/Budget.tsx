@@ -3,7 +3,10 @@ import { useFinance } from '../context/FinanceContext';
 import { Transaction } from '../types';
 import { RefreshCcw, Settings, AlertTriangle } from 'lucide-react';
 
-// Components
+// UI Components
+import { Button } from '../components/ui/Button';
+
+// Budget Components
 import CycleCard from '../components/budget/CycleCard';
 import WeeklyBreakdown from '../components/budget/WeeklyBreakdown';
 import TransactionList from '../components/budget/TransactionList';
@@ -89,19 +92,21 @@ const Budget: React.FC = () => {
     return (
       <>
         <div className="flex flex-col items-center justify-center h-[70vh] text-center px-6 animate-in zoom-in-95 duration-500">
-          <div className="bg-muted p-5 rounded-full mb-6 text-muted-foreground shadow-inner">
+          <div className="bg-white/10 p-5 rounded-full mb-6 text-white shadow-[0_0_30px_rgba(255,255,255,0.1)] backdrop-blur-md border border-white/20">
             <RefreshCcw size={40} strokeWidth={1.5} />
           </div>
-          <h2 className="text-2xl font-black text-foreground mb-3 tracking-tight">Sin Ciclo Activo</h2>
-          <p className="text-muted-foreground text-sm mb-8 max-w-[280px] leading-relaxed">
+          <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Sin Ciclo Activo</h2>
+          <p className="text-gray-400 text-sm mb-8 max-w-[280px] leading-relaxed">
             Comienza un nuevo ciclo financiero para rastrear tus gastos y proteger tu dinero.
           </p>
-          <button
+          <Button
             onClick={() => setIsCycleModalOpen(true)}
-            className="bg-primary text-primary-foreground px-8 py-4 rounded-[1.25rem] font-bold shadow-lg shadow-primary/25 active:scale-95 transition-all hover:bg-primary/90"
+            size="lg"
+            variant="premium"
+            className="w-full max-w-xs text-lg h-14"
           >
             Iniciar Nuevo Ciclo
-          </button>
+          </Button>
         </div>
 
 
@@ -110,9 +115,9 @@ const Budget: React.FC = () => {
           transactions.length > 0 && (
             <div className="px-4 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex items-center gap-4 mb-6 opacity-60">
-                <div className="h-px bg-border flex-1"></div>
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Reciente (Sin Ciclo)</span>
-                <div className="h-px bg-border flex-1"></div>
+                <div className="h-px bg-white/10 flex-1"></div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reciente (Sin Ciclo)</span>
+                <div className="h-px bg-white/10 flex-1"></div>
               </div>
               <TransactionList
                 displayTransactions={transactions.slice(0, 5)}
@@ -138,18 +143,21 @@ const Budget: React.FC = () => {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6 pt-4 relative pb-24">
-      <header className="px-2 flex justify-between items-start mb-2">
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8 pt-6 relative pb-32">
+      {/* Header */}
+      <header className="px-4 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight">Presupuesto</h1>
-          <p className="text-muted-foreground text-sm font-medium">Control total en tus manos</p>
+          <h1 className="text-3xl font-black text-white tracking-tight">Presupuesto</h1>
+          <p className="text-indigo-200 text-sm font-medium">Control total en tus manos</p>
         </div>
-        <button
+        <Button
+          variant="glass"
+          size="icon"
           onClick={() => setIsSettingsModalOpen(true)}
-          className="p-3 bg-card border border-border/50 rounded-2xl shadow-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all active:scale-95"
+          className="rounded-full w-12 h-12"
         >
           <Settings size={20} />
-        </button>
+        </Button>
       </header>
 
       <CycleCard
@@ -181,9 +189,9 @@ const Budget: React.FC = () => {
 
       {/* Out of Cycle Warning Section */}
       {outOfCycleTransactions.length > 0 && (
-        <div className="px-1 py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[1.5rem] p-5 mb-4">
-            <div className="flex items-center gap-3 mb-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
+        <div className="px-4 py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[1.5rem] p-5 mb-4 backdrop-blur-md">
+            <div className="flex items-center gap-3 mb-2 text-amber-400 font-bold text-sm">
               <div className="bg-amber-500/20 p-1.5 rounded-lg">
                 <AlertTriangle size={16} />
               </div>
@@ -199,7 +207,7 @@ const Budget: React.FC = () => {
           </div>
 
           <div className="opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 transition-all duration-300">
-            <div className="bg-muted h-px w-full mb-6"></div>
+            <div className="bg-white/10 h-px w-full mb-6"></div>
             <TransactionList
               displayTransactions={outOfCycleTransactions}
               currency={currency}

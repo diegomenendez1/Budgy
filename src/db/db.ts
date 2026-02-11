@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Cycle, RecurringItem, Transaction, UserSettings } from '../../types';
+import { Cycle, RecurringItem, Transaction, UserSettings } from '../types';
 
 export interface ChatSession {
     id: string;

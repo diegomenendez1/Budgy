@@ -1,4 +1,4 @@
-import { Transaction, TransactionType, Cycle, CycleMetrics, WeeklyStatus } from '../../types';
+import { Transaction, TransactionType, Cycle, CycleMetrics, WeeklyStatus } from '../types';
 
 export const calculateCycleMetrics = (
     activeCycle: Cycle | null,

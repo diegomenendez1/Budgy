@@ -1,5 +1,5 @@
 // import { supabase } from '../lib/supabase';
-import { db } from '../src/db/db';
+import { db } from '../db/db';
 
 const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
 

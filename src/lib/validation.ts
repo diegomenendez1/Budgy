@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TransactionType, Frequency } from '../../types';
+import { TransactionType, Frequency } from '../types';
 
 // --- Enums & Primitives ---
 export const TransactionTypeSchema = z.nativeEnum(TransactionType);

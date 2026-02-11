@@ -1,5 +1,5 @@
 import { Transaction, RecurringItem, TransactionType } from '../types';
-import { AIParseResultSchema } from '../src/lib/validation';
+import { AIParseResultSchema } from '../lib/validation';
 import { z } from 'zod';
 
 // Local-first service: Key is passed from the component (Context), not hardcoded.

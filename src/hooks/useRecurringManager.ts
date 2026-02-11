@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
-import { RecurringItem } from '../../types';
+import { RecurringItem } from '../types';
 import { RecurringItemSchema } from '../lib/validation';
 
 // Helper for IDs

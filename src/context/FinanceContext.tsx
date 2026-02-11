@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Transaction, RecurringItem, FinancialContextType, TransactionType, Cycle, CycleMetrics, CycleHistoryItem } from '../types';
-import { calculateCycleMetrics, calculateWeeklyBreakdown } from '../src/lib/financeLogic';
+import { calculateCycleMetrics, calculateWeeklyBreakdown } from '../lib/financeLogic';
 import { useAuth } from './AuthContext';
 import { AuthScreen } from '../components/AuthScreen';
-import { migrateFromLocalStorage, db } from '../src/db/db';
+import { migrateFromLocalStorage, db } from '../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useTransactionManager } from '../src/hooks/useTransactionManager';
-import { useRecurringManager } from '../src/hooks/useRecurringManager';
-import { useCycleManager } from '../src/hooks/useCycleManager';
+import { useTransactionManager } from '../hooks/useTransactionManager';
+import { useRecurringManager } from '../hooks/useRecurringManager';
+import { useCycleManager } from '../hooks/useCycleManager';
 
 const FinanceContext = createContext<FinancialContextType | undefined>(undefined);
 

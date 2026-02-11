@@ -8,6 +8,8 @@ interface AuthContextType {
     loading: boolean;
     signOut: () => Promise<void>;
     signInAsGuest: () => Promise<void>;
+    signInWithGoogle: () => Promise<void>;
+    register: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,6 +67,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(newSession);
     };
 
+    const signInWithGoogle = async () => {
+        // Mock Google Login for demo
+        console.log("Mocking Google Login...");
+        await signInAsGuest();
+    };
+
+    const register = async () => {
+        // Mock Register for demo
+        console.log("Mocking Register...");
+        await signInAsGuest();
+    };
+
     const signOut = async () => {
         if (confirm("¿Estás seguro? Al salir en modo local se borrarán tus datos de este dispositivo si borras el caché.")) {
             // For now we just 'lock' the app, effectively routing to Welcome
@@ -76,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signOut, signInAsGuest }}>
+        <AuthContext.Provider value={{ session, user, loading, signOut, signInAsGuest, signInWithGoogle, register }}>
             {children}
         </AuthContext.Provider>
     );

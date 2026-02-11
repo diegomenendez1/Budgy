@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
-import { Transaction, TransactionType } from '../../types';
+import { Transaction, TransactionType } from '../types';
 import { TransactionInputSchema } from '../lib/validation';
 
 // Helper for IDs
