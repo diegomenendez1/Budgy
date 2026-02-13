@@ -24,6 +24,9 @@ Sincronizar los cambios locales con el repositorio remoto de GitHub de forma seg
 - **Tokens/Credenciales**: No incluir secretos en los mensajes de commit.
 - **Conflictos**: Si el script encuentra conflictos de fusión, debe fallar y notificar al usuario para resolución manual si no se puede automatizar de forma segura.
 - **Rama Protegida**: Si la rama principal está protegida, el push fallará si no se cumplen las reglas de la rama.
+- **Entorno Windows**: Usar `py` en lugar de `python` si el alias estándar no está configurado.
 
 ## Notas de Aprendizaje
-- *Pendiente de actualización tras la primera ejecución.*
+- Primera ejecución exitosa el 13/02/2026.
+- Se detectó que en este entorno se debe usar el comando `py` para ejecutar scripts de Python.
+- El script maneja la detección automática de la rama actual para el push.

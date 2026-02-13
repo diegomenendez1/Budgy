@@ -1,0 +1,2 @@
+python-dotenv
+# Add other dependencies here as needed
