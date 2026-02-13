@@ -1,6 +1,19 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-// import { supabase } from '../lib/supabase';
+
+// LOCAL AUTH TYPES
+// Defining local interfaces to replace @supabase/supabase-js types
+export interface User {
+    id: string;
+    email: string;
+    full_name: string;
+    created_at: string;
+}
+
+export interface Session {
+    access_token: string;
+    user: User;
+    expires_at: number;
+}
 
 interface AuthContextType {
     session: Session | null;
@@ -9,35 +22,30 @@ interface AuthContextType {
     signOut: () => Promise<void>;
     signInAsGuest: () => Promise<void>;
     signInWithGoogle: () => Promise<void>;
-    register: () => Promise<void>;
+    signInWithEmail: (email: string, password: string) => Promise<{ error: any }>;
+    register: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    // State for local user persistence
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for existing local user on mount
+        // Initialize from LocalStorage
         const initAuth = () => {
             try {
-                const storedUser = localStorage.getItem('budgy_local_user');
-                if (storedUser) {
-                    const parsedUser = JSON.parse(storedUser);
-                    setUser(parsedUser);
-                    setSession({
-                        user: parsedUser,
-                        access_token: 'local-token',
-                        refresh_token: 'local-refresh-token',
-                        expires_in: 3600,
-                        token_type: 'bearer'
-                    });
+                const storedSession = localStorage.getItem('budgy_session');
+                if (storedSession) {
+                    const parsedSession = JSON.parse(storedSession);
+                    setSession(parsedSession);
+                    setUser(parsedSession.user);
                 }
             } catch (error) {
-                console.error("Auth init error", error);
+                console.error("Local Auth Init Error:", error);
+                localStorage.removeItem('budgy_session');
             } finally {
                 setLoading(false);
             }
@@ -45,52 +53,89 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         initAuth();
     }, []);
 
+    // Helper to simulate network delay
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
     const signInAsGuest = async () => {
+        await delay(500);
+        const guestUser = createMockUser('guest@budgy.local', 'Invitado');
+        createSession(guestUser);
+    };
+
+    const signInWithEmail = async (email: string, password: string) => {
+        await delay(800); // Simulate network
+        const users = JSON.parse(localStorage.getItem('budgy_users') || '[]');
+        const foundUser = users.find((u: any) => u.email === email && u.password === password);
+
+        if (foundUser) {
+            const userObj = createMockUser(foundUser.email, foundUser.full_name, foundUser.id);
+            createSession(userObj);
+            return { error: null };
+        } else {
+            return { error: { message: "Credenciales inválidas (Modo Local)" } };
+        }
+    };
+
+    const register = async (email: string, password: string, fullName: string) => {
+        await delay(800);
+        const users = JSON.parse(localStorage.getItem('budgy_users') || '[]');
+
+        if (users.find((u: any) => u.email === email)) {
+            return { error: { message: "El usuario ya existe (Modo Local)" } };
+        }
+
         const newUser = {
-            id: 'local-user-' + Date.now(),
-            app_metadata: {},
-            user_metadata: { full_name: 'Usuario Local' },
-            aud: 'authenticated',
+            id: crypto.randomUUID(),
+            email,
+            password,
+            full_name: fullName,
             created_at: new Date().toISOString()
-        } as User;
+        };
 
-        const newSession = {
-            user: newUser,
-            access_token: 'local-token-' + Date.now(),
-            refresh_token: 'local-refresh-token',
-            expires_in: 3600,
-            token_type: 'bearer'
-        } as unknown as Session;
+        users.push(newUser);
+        localStorage.setItem('budgy_users', JSON.stringify(users));
 
-        localStorage.setItem('budgy_local_user', JSON.stringify(newUser));
-        setUser(newUser);
-        setSession(newSession);
+        const userObj = createMockUser(newUser.email, newUser.full_name, newUser.id);
+        createSession(userObj);
+        return { error: null };
     };
 
     const signInWithGoogle = async () => {
-        // Mock Google Login for demo
-        console.log("Mocking Google Login...");
-        await signInAsGuest();
-    };
-
-    const register = async () => {
-        // Mock Register for demo
-        console.log("Mocking Register...");
+        console.log("Google Login simulated in Local Mode");
         await signInAsGuest();
     };
 
     const signOut = async () => {
-        if (confirm("¿Estás seguro? Al salir en modo local se borrarán tus datos de este dispositivo si borras el caché.")) {
-            // For now we just 'lock' the app, effectively routing to Welcome
-            // But we DON'T delete the data from DB in this simplified logout
-            localStorage.removeItem('budgy_local_user');
-            setUser(null);
-            setSession(null);
-        }
+        await delay(300);
+        localStorage.removeItem('budgy_session');
+        setUser(null);
+        setSession(null);
+    };
+
+    // Private helpers
+    const createMockUser = (email: string, fullName: string, id?: string): User => {
+        return {
+            id: id || crypto.randomUUID(),
+            email: email,
+            full_name: fullName,
+            created_at: new Date().toISOString(),
+        };
+    };
+
+    const createSession = (user: User) => {
+        const newSession: Session = {
+            access_token: 'local-mock-token-' + Date.now(),
+            user: user,
+            expires_at: Math.floor(Date.now() / 1000) + 3600 * 24 * 7
+        };
+
+        localStorage.setItem('budgy_session', JSON.stringify(newSession));
+        setSession(newSession);
+        setUser(user);
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signOut, signInAsGuest, signInWithGoogle, register }}>
+        <AuthContext.Provider value={{ session, user, loading, signOut, signInAsGuest, signInWithGoogle, signInWithEmail, register }}>
             {children}
         </AuthContext.Provider>
     );

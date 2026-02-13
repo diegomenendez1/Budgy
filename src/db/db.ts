@@ -102,7 +102,12 @@ export const migrateFromLocalStorage = async () => {
         });
 
         localStorage.setItem('budgy_migrated_to_dexie', 'true');
-        console.log('Migration completed successfully.');
+
+        // Clear old localStorage data to prevent leaks/re-migration
+        const keysToClear = ['transactions', 'recurringItems', 'cycles', 'customCategories', 'savingsGoal', 'currency'];
+        keysToClear.forEach(k => localStorage.removeItem(k));
+
+        console.log('Migration completed and localStorage cleared.');
 
     } catch (error) {
         console.error('Migration failed:', error);

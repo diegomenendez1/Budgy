@@ -30,7 +30,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   // --- Settings (Local Logic for now) ---
-  const userSettings = useLiveQuery(() => db.userSettings.get(user?.id || 'local-user'));
+  const userSettings = useLiveQuery(() => db.userSettings.get(user?.id || 'local-user'), [user?.id]);
   const customCategories = userSettings?.custom_categories || [];
   const savingsGoal = userSettings?.savings_goal || 0;
   const currency = userSettings?.currency || 'USD';

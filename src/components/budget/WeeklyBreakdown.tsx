@@ -2,6 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown, ArrowRightLeft, CalendarDays } from 'lucide-react';
 import { Cycle, CycleMetrics, WeeklyStatus } from '../../types';
 import { Card } from '../ui/Card';
+import { useFinance } from '../../context/FinanceContext';
+import { formatCurrency } from '../../lib/utils';
+
 
 interface WeeklyBreakdownProps {
     weeklyBreakdown: WeeklyStatus[];
@@ -18,7 +21,9 @@ const WeeklyBreakdown: React.FC<WeeklyBreakdownProps> = ({
     showWeeklyDetail,
     setShowWeeklyDetail
 }) => {
+    const { currency } = useFinance();
     const currentWeekRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
         if (showWeeklyDetail && currentWeekRef.current) {
@@ -29,22 +34,22 @@ const WeeklyBreakdown: React.FC<WeeklyBreakdownProps> = ({
     }, [showWeeklyDetail]);
 
     return (
-        <Card className="border-0 bg-white/5 backdrop-blur-md overflow-hidden transition-all duration-300">
+        <Card className="border border-border bg-card overflow-hidden transition-all duration-300 shadow-sm">
             <button
                 onClick={() => setShowWeeklyDetail(!showWeeklyDetail)}
                 className="w-full p-5 flex justify-between items-center bg-transparent active:bg-white/5 transition-colors"
                 aria-expanded={showWeeklyDetail}
             >
                 <div className="flex items-center gap-3">
-                    <div className="bg-white/10 p-2.5 rounded-xl text-indigo-300 backdrop-blur-sm border border-white/5 shadow-inner">
+                    <div className="bg-primary/10 p-2.5 rounded-xl text-primary border border-primary/10">
                         <CalendarDays size={20} />
                     </div>
                     <div className="text-left">
-                        <span className="font-bold text-white text-base block tracking-tight">Desglose Semanal</span>
-                        <span className="text-xs text-gray-400 font-medium">Gestiona tus límites por semana</span>
+                        <span className="font-bold text-foreground text-base block tracking-tight">Desglose Semanal</span>
+                        <span className="text-xs text-muted-foreground font-medium">Gestiona tus límites por semana</span>
                     </div>
                 </div>
-                <div className={`text-gray-400 bg-white/5 p-1.5 rounded-full transition-transform duration-300 ${showWeeklyDetail ? 'rotate-180 bg-white/10 text-white' : ''}`}>
+                <div className={`text-muted-foreground bg-secondary p-1.5 rounded-full transition-transform duration-300 ${showWeeklyDetail ? 'rotate-180 bg-primary/10 text-primary' : ''}`}>
                     <ChevronDown size={18} />
                 </div>
             </button>
@@ -63,21 +68,20 @@ const WeeklyBreakdown: React.FC<WeeklyBreakdownProps> = ({
                                 key={week.weekNumber}
                                 ref={week.isCurrent ? currentWeekRef : null}
                                 className={`p-4 rounded-[1.25rem] flex justify-between items-center transition-all border relative overflow-hidden ${week.isCurrent
-                                    ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-[0_8px_16px_rgba(79,70,229,0.3)] border-white/10'
-                                    : 'bg-white/5 text-gray-400 border-transparent hover:bg-white/10'
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-primary'
+                                    : 'bg-secondary text-muted-foreground border-transparent hover:bg-secondary/80'
                                     }`}
                             >
                                 {/* Active Week Decorative Background */}
                                 {week.isCurrent && (
                                     <>
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px] pointer-events-none"></div>
-                                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-[30px] pointer-events-none"></div>
                                     </>
                                 )}
 
                                 <div className="flex-1 relative z-10">
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${week.isCurrent ? 'text-white/90' : 'text-gray-500'}`}>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${week.isCurrent ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
                                             {week.label}
                                         </span>
                                         {isSqueezed && week.remaining > 0 && (
@@ -87,12 +91,13 @@ const WeeklyBreakdown: React.FC<WeeklyBreakdownProps> = ({
                                         )}
                                     </div>
                                     <div className="flex flex-col gap-0.5 mt-1">
-                                        <p className={`text-[11px] font-medium ${week.isCurrent ? 'text-white/80' : 'text-gray-400'}`}>
+                                        <p className={`text-[11px] font-medium ${week.isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                                             {new Date(week.startDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - {new Date(week.endDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                                         </p>
-                                        <p className={`text-[11px] font-bold ${week.isCurrent ? 'text-white' : 'text-gray-300'}`}>
-                                            Límite: ${Math.round(week.limit).toLocaleString()}
+                                        <p className={`text-[11px] font-bold ${week.isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}>
+                                            Límite: {formatCurrency(week.limit, currency)}
                                         </p>
+
                                     </div>
                                 </div>
                                 <div className="text-right relative z-10">
@@ -101,8 +106,9 @@ const WeeklyBreakdown: React.FC<WeeklyBreakdownProps> = ({
                                         ? week.isCurrent ? 'text-red-200 drop-shadow-md' : 'text-red-400'
                                         : week.isCurrent ? 'text-white drop-shadow-sm' : 'text-white'
                                         }`}>
-                                        ${Math.round(week.remaining).toLocaleString()}
+                                        {formatCurrency(week.remaining, currency)}
                                     </p>
+
                                 </div>
                             </div>
                         );

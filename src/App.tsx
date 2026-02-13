@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { FinanceProvider } from './context/FinanceContext';
+import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { ThemeProvider } from './context/ThemeContext';
 import MainAppLayout from './components/MainAppLayout';
 import Welcome from './pages/Welcome';
@@ -11,10 +11,10 @@ import Register from './pages/Register';
 
 // Loading Component
 const LoadingScreen = () => (
-  <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center">
+  <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="animate-pulse flex flex-col items-center">
-      <div className="w-12 h-12 bg-blue-500 rounded-full mb-4"></div>
-      <div className="text-slate-400 font-medium">Cargando Budgy...</div>
+      <div className="w-12 h-12 bg-primary rounded-full mb-4"></div>
+      <div className="text-muted-foreground font-medium">Cargando Budgy...</div>
     </div>
   </div>
 );
@@ -46,6 +46,18 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppContent = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { activeCycle, cycles } = useFinance();
+  const location = useLocation();
+
+  // Onboarding logic: If user is logged in but has no cycles, 
+  // they MUST go to onboarding, unless they are already there.
+  const needsOnboarding = user && !activeCycle && cycles.length === 0;
+
+  if (needsOnboarding && location.pathname !== '/onboarding' && !authLoading) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   return (
     <Routes>
       <Route path="/welcome" element={<PublicRoute><Welcome /></PublicRoute>} />

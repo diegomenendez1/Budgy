@@ -1,0 +1,8 @@
+Starting test for user: testuser_1771007757281@example.com
+Navigating to register...
+Registration FAILED
+Current URL: about:blank
+Error: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5173/register
+Call log:
+[2m  - navigating to "http://127.0.0.1:5173/register", waiting until "load"[22m
+

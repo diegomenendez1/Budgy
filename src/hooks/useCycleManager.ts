@@ -13,7 +13,8 @@ export const useCycleManager = (userId: string | undefined, savingsGoal: number)
     const effectiveUserId = userId || 'local-user';
 
     const cycles = useLiveQuery(
-        () => db.cycles.where('owner_id').equals(effectiveUserId).toArray()
+        () => db.cycles.where('owner_id').equals(effectiveUserId).toArray(),
+        [effectiveUserId]
     ) || [];
 
     const createCycle = async (endDate: Date, initialBudget: number) => {

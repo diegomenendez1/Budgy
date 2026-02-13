@@ -17,7 +17,8 @@ export const useTransactionManager = (userId: string | undefined) => {
     // Live Query for all transactions
     // In a real multi-user app we filter by owner_id, but here 'local-user' is default
     const transactions = useLiveQuery(
-        () => db.transactions.where('owner_id').equals(effectiveUserId).reverse().sortBy('date') // Optimized query
+        () => db.transactions.where('owner_id').equals(effectiveUserId).reverse().sortBy('date'),
+        [effectiveUserId]
     ) || [];
 
     // Fallback if index isn't created or simple array needed:

@@ -3,6 +3,8 @@ import { RefreshCcw, Edit3, TrendingUp, TrendingDown, PiggyBank } from 'lucide-r
 import { Cycle, CycleMetrics, WeeklyStatus } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { formatCurrency } from '../../lib/utils';
+
 
 interface CycleCardProps {
     activeCycle: Cycle | null;
@@ -28,16 +30,16 @@ const CycleCard: React.FC<CycleCardProps> = ({
         ? (cycleMetrics.spentThisCycle / totalAvailable) * 100
         : 0;
 
-    if (percentageOfBudget >= 80) progressBarColor = 'bg-gradient-to-r from-amber-500 to-orange-500';
-    if (percentageOfBudget >= 100) progressBarColor = 'bg-gradient-to-r from-red-500 to-rose-600';
+    if (percentageOfBudget >= 80) progressBarColor = 'bg-amber-500';
+    if (percentageOfBudget >= 100) progressBarColor = 'bg-destructive';
 
     return (
-        <Card className="relative overflow-hidden border-0 bg-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+        <Card className="relative overflow-hidden border border-border bg-card shadow-2xl shadow-primary/5">
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Dinero disponible</h2>
-                        <p className="text-white/70 text-xs font-bold mt-0.5">
+                        <h2 className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Dinero disponible</h2>
+                        <p className="text-foreground/70 text-xs font-bold mt-0.5">
                             {activeCycle?.name}
                         </p>
                     </div>
@@ -54,39 +56,41 @@ const CycleCard: React.FC<CycleCardProps> = ({
 
                 <div className="flex flex-col items-center mb-8">
                     <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-white/40">{currency === 'EUR' ? '€' : '$'}</span>
-                        <span className={`text-6xl font-black tracking-tighter ${cycleMetrics.remainingBudget < 0 ? 'text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.5)]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>
-                            {cycleMetrics.remainingBudget.toLocaleString()}
+                        <span className={`text-6xl font-black tracking-tighter ${cycleMetrics.remainingBudget < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                            {formatCurrency(cycleMetrics.remainingBudget, currency)}
                         </span>
                     </div>
-                    <span className={`mt-2 px-3 py-1 rounded-full text-xs font-bold border ${cycleMetrics.remainingBudget < 0 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+
+                    <span className={`mt-2 px-3 py-1 rounded-full text-xs font-bold border ${cycleMetrics.remainingBudget < 0 ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
                         {cycleMetrics.remainingBudget < 0 ? 'Presupuesto Excedido' : 'Disponible para gastar'}
                     </span>
                 </div>
 
                 {/* Custom Progress Bar */}
-                <div className="relative h-4 bg-black/20 rounded-full mb-3 overflow-hidden backdrop-blur-sm border border-white/5">
+                <div className="relative h-4 bg-secondary rounded-full mb-3 overflow-hidden border border-border/50">
                     <div
-                        className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)] ${progressBarColor}`}
+                        className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${progressBarColor}`}
                         style={{ width: `${Math.min(percentageOfBudget, 100)}%` }}
                     />
                 </div>
 
-                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 mb-8 tracking-widest px-1">
-                    <span>Gastado ${cycleMetrics.spentThisCycle.toLocaleString()}</span>
-                    <span>Total ${activeCycle?.initialBudget.toLocaleString()}</span>
+                <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground mb-8 tracking-widest px-1">
+                    <span>Gastado {formatCurrency(cycleMetrics.spentThisCycle, currency)}</span>
+                    <span>Total {formatCurrency(activeCycle?.initialBudget || 0, currency)}</span>
                 </div>
 
+
                 <div className="grid grid-cols-2 gap-3">
-                    <div className={`rounded-2xl p-4 border flex flex-col justify-between h-24 backdrop-blur-sm ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+                    <div className={`rounded-2xl p-4 border flex flex-col justify-between h-24 backdrop-blur-sm ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'bg-destructive/10 border-destructive/20' : 'bg-secondary border-border'}`}>
                         <div className="flex justify-between items-start">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-red-400' : 'text-gray-400'}`}>Semana</span>
-                            {currentWeekStatus && currentWeekStatus.remaining < 0 ? <TrendingDown size={14} className="text-red-400" /> : <TrendingUp size={14} className="text-emerald-400" />}
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>Semana</span>
+                            {currentWeekStatus && currentWeekStatus.remaining < 0 ? <TrendingDown size={14} className="text-destructive" /> : <TrendingUp size={14} className="text-primary" />}
                         </div>
 
-                        <span className={`text-xl font-black tracking-tight ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-red-400' : 'text-white'}`}>
-                            {currency === 'EUR' ? '€' : '$'}{currentWeekStatus ? currentWeekStatus.remaining.toLocaleString() : '0'}
+                        <span className={`text-xl font-black tracking-tight ${currentWeekStatus && currentWeekStatus.remaining < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                            {formatCurrency(currentWeekStatus ? currentWeekStatus.remaining : 0, currency)}
                         </span>
+
                     </div>
 
                     <button
@@ -99,9 +103,10 @@ const CycleCard: React.FC<CycleCardProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <span className="text-xl font-black tracking-tight text-blue-300">
-                                ${activeCycle?.savingsGoal.toLocaleString()}
+                            <span className="text-xl font-black tracking-tight text-primary">
+                                {formatCurrency(activeCycle?.savingsGoal || 0, currency)}
                             </span>
+
                             <div className="bg-blue-500/20 p-1 rounded-md">
                                 <Edit3 size={10} className="text-blue-400" />
                             </div>

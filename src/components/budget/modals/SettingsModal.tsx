@@ -8,15 +8,18 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-    const { apiKey, setApiKey } = useFinance();
+    const { apiKey, setApiKey, currency, setCurrency } = useFinance();
     const [tempKey, setTempKey] = useState(apiKey || '');
     const [saved, setSaved] = useState(false);
+
 
     if (!isOpen) return null;
 
     const handleSave = () => {
         setApiKey(tempKey);
+        // Currency is saved immediately via context but we show the feedback
         setSaved(true);
+
         setTimeout(() => {
             setSaved(false);
             onClose();
@@ -24,23 +27,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4 animate-in">
+        <div className="fixed inset-0 bg-background/80 z-[100] flex items-center justify-center backdrop-blur-md p-4 animate-in">
             <div className="absolute inset-0" onClick={onClose}></div>
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10">
+            <div className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 border border-border">
 
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-gray-100 dark:bg-slate-800 p-3 rounded-full">
-                        <Key size={24} className="text-gray-900 dark:text-white" />
+                    <div className="bg-secondary p-3 rounded-full">
+                        <Key size={24} className="text-foreground" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Configuración</h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400">Garantiza tu privacidad en local</p>
+                        <h2 className="text-xl font-black text-foreground uppercase tracking-widest italic leading-none">Configuración</h2>
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">Garantiza tu privacidad local</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 px-1">
                             OpenAI API Key (GPT-5 Mini)
                         </label>
                         <div className="relative">
@@ -50,7 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 value={tempKey}
                                 onChange={(e) => setTempKey(e.target.value)}
                                 placeholder="sk-..."
-                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm font-mono focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
+                                className="w-full bg-secondary border border-border rounded-xl py-3 pl-10 pr-4 text-sm font-mono focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-foreground"
                             />
                         </div>
                         <p className="text-xs text-gray-400 mt-2">
@@ -58,16 +61,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         </p>
                     </div>
 
+                    <div className="pt-2">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 px-1">
+                            Moneda Principal
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {['USD', 'MXN', 'EUR', 'COP'].map(c => (
+                                <button
+                                    key={c}
+                                    onClick={() => setCurrency(c)}
+                                    className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${currency === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
+                                >
+                                    {c}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+
                     <button
                         onClick={handleSave}
-                        className={`w-full py-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${saved ? 'bg-green-500' : 'bg-black dark:bg-white dark:text-black'}`}
+                        className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2 ${saved ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-foreground text-background shadow-lg shadow-foreground/10 hover:scale-[1.02] active:scale-[0.98]'}`}
                     >
                         {saved ? <><Check size={20} /> Guardado</> : 'Guardar Configuración'}
                     </button>
 
                     <button
                         onClick={onClose}
-                        className="w-full py-3 text-gray-500 font-medium hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                        className="w-full py-3 text-muted-foreground font-black uppercase tracking-widest text-[10px] hover:bg-secondary rounded-xl transition-colors"
                     >
                         Cancelar
                     </button>

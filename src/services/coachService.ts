@@ -32,12 +32,12 @@ export const coachService = {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        model: 'gpt-5-mini', // Confirmed user preference
+                        model: 'gpt-5-mini', // MANDATORY: ALWAYS USE GPT-5 MINI
                         messages: [
                             {
                                 role: 'system',
-                                content: `Eres Budgy Coach, un asesor financiero experto. 
-                                Analiza los datos del usuario y responde de forma motivadora y precisa.
+                                content: `Eres Budgy Coach, un asistente financiero experto y cercano operando con GPT-5 Mini. 
+                                Analiza los datos del usuario y responde de forma motivadora, sencilla y precisa. Evita tecnicismos innecesarios.
                                 Datos actuales: ${JSON.stringify(dataPacket)}
                                 Modo Privacidad: ${privacyMode ? 'SÍ (las descripciones están ocultas)' : 'NO'}`
                             },
@@ -48,14 +48,14 @@ export const coachService = {
                 });
 
                 if (!response.ok) {
-                    const err = await response.text();
-                    throw new Error(`OpenAI_ERROR: ${err}`);
+                    const err = await response.json().catch(() => ({ error: { message: "Error desconocido" } }));
+                    throw new Error(`OpenAI_GPT5MINI_ERROR: ${err.error?.message || response.statusText}`);
                 }
 
                 const data = await response.json();
                 return data.choices[0].message.content;
-            } catch (error) {
-                console.error('Error with direct OpenAI Coach:', error);
+            } catch (error: any) {
+                console.error('Error with direct OpenAI Coach (GPT-5 Mini):', error);
                 throw error;
             }
         }

@@ -15,16 +15,21 @@ const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate network request
-        setTimeout(async () => {
-            await register();
-            setIsLoading(false);
+        try {
+            const { error } = await register(email, password, name);
+            if (error) throw error;
             navigate('/onboarding');
-        }, 1500);
+        } catch (error) {
+            console.error("Registration Error:", error);
+            setErrorMsg("Error al registrar: " + (error as any).message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleGoogleSignUp = async () => {
@@ -34,7 +39,7 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[100px] pointer-events-none" />
             <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none" />
@@ -47,19 +52,19 @@ const Register = () => {
             >
                 <button
                     onClick={() => navigate('/welcome')}
-                    className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+                    className="flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors"
                 >
                     <ArrowLeft size={20} className="mr-2" />
                     Volver
                 </button>
 
-                <Card className="border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+                <Card className="border-border bg-card shadow-2xl">
                     <CardHeader className="space-y-1 text-center">
-                        <div className="mx-auto w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4">
-                            <User className="text-white" size={24} />
+                        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                            <User className="text-primary" size={24} />
                         </div>
-                        <CardTitle className="text-2xl text-white">Crea tu cuenta</CardTitle>
-                        <CardDescription className="text-gray-400">
+                        <CardTitle className="text-2xl font-black text-foreground uppercase tracking-tight italic">Crea tu cuenta</CardTitle>
+                        <CardDescription className="uppercase tracking-widest text-[10px] font-black text-muted-foreground">
                             Únete a Budgy y toma el control
                         </CardDescription>
                     </CardHeader>
@@ -71,7 +76,7 @@ const Register = () => {
                                     <Input
                                         type="text"
                                         placeholder="Nombre completo"
-                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-500/50 focus:ring-indigo-500/20"
+                                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
@@ -84,7 +89,7 @@ const Register = () => {
                                     <Input
                                         type="email"
                                         placeholder="Correo electrónico"
-                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-500/50 focus:ring-indigo-500/20"
+                                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -97,7 +102,7 @@ const Register = () => {
                                     <Input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Contraseña"
-                                        className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-500/50 focus:ring-indigo-500/20"
+                                        className="pl-10 pr-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -112,7 +117,7 @@ const Register = () => {
                                 </div>
                             </div>
 
-                            <Button className="w-full bg-white text-black hover:bg-gray-200 font-bold" type="submit" disabled={isLoading}>
+                            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest py-6 rounded-2xl shadow-xl shadow-primary/20" type="submit" disabled={isLoading}>
                                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <div className="flex items-center gap-2">Crear Cuenta <CheckCircle size={16} /></div>}
                             </Button>
                         </form>
@@ -122,19 +127,29 @@ const Register = () => {
                                 <span className="w-full border-t border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-black/40 px-2 text-gray-500 backdrop-blur-xl">O continúa con</span>
+                                <span className="bg-card px-2 text-muted-foreground uppercase tracking-widest text-[10px] font-black">O continúa con</span>
                             </div>
                         </div>
 
-                        <Button variant="outline" className="w-full border-white/10 text-white hover:bg-white/5 hover:text-white" onClick={handleGoogleSignUp} disabled={isLoading}>
-                            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
-                            Google
+                        <Button
+                            variant="outline"
+                            className="w-full border-border bg-secondary hover:bg-muted text-foreground transition-all font-bold flex items-center justify-center gap-3 h-12"
+                            onClick={handleGoogleSignUp}
+                            disabled={isLoading}
+                        >
+                            <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                            </svg>
+                            Continuar con Google
                         </Button>
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <div className="text-sm text-gray-400">
                             ¿Ya tienes cuenta?{' '}
-                            <button onClick={() => navigate('/login')} className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                            <button onClick={() => navigate('/login')} className="text-primary hover:text-primary/80 font-black uppercase tracking-widest text-xs transition-colors">
                                 Iniciar Sesión
                             </button>
                         </div>

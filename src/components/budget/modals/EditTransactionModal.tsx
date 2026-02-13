@@ -8,15 +8,19 @@ interface EditTransactionModalProps {
     transaction: Transaction | null;
     onUpdate: (updatedTx: Transaction) => void;
     categories: string[];
+    currency?: string;
 }
+
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     isOpen,
     onClose,
     transaction,
     onUpdate,
-    categories
+    categories,
+    currency = 'USD'
 }) => {
+
     const [editAmount, setEditAmount] = useState('');
     const [editDesc, setEditDesc] = useState('');
     const [editCategory, setEditCategory] = useState('');
@@ -52,11 +56,11 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe sm:pb-6 shadow-2xl relative z-10 overflow-hidden animate-in sm:m-4">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900">Editar Transacción</h3>
-                    <button onClick={onClose} aria-label="Cerrar modal" className="bg-gray-100 p-2 rounded-full text-gray-700">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
+            <div className="bg-card w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 pb-safe sm:pb-8 shadow-2xl relative z-10 overflow-hidden animate-in sm:m-4 border border-border">
+                <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight italic leading-none">Editar Transacción</h3>
+                    <button onClick={onClose} aria-label="Cerrar modal" className="bg-secondary p-2 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -64,32 +68,33 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 <form onSubmit={handleUpdateTransaction} className="space-y-5">
 
                     {/* Type Switcher */}
-                    <div className="flex bg-gray-100 p-1 rounded-2xl">
+                    <div className="flex bg-secondary p-1.5 rounded-[1.25rem] border border-border">
                         <button
                             type="button"
                             onClick={() => setEditType(TransactionType.EXPENSE)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.EXPENSE ? 'bg-white text-red-600 shadow-sm' : 'text-gray-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${editType === TransactionType.EXPENSE ? 'bg-background text-red-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <ArrowUp size={16} /> Gasto
                         </button>
                         <button
                             type="button"
                             onClick={() => setEditType(TransactionType.INCOME)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${editType === TransactionType.INCOME ? 'bg-white text-green-600 shadow-sm' : 'text-gray-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${editType === TransactionType.INCOME ? 'bg-background text-green-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <ArrowDown size={16} /> Ingreso
                         </button>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Monto</label>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 px-1">Monto</label>
                         <div className="relative">
-                            <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold ${editType === TransactionType.INCOME ? 'text-green-500' : 'text-gray-600'}`}>$</span>
+                            <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-black ${editType === TransactionType.INCOME ? 'text-green-500' : 'text-muted-foreground/30'}`}>{currency === 'EUR' ? '€' : '$'}</span>
+
                             <input
                                 type="number"
                                 value={editAmount}
                                 onChange={(e) => setEditAmount(e.target.value)}
-                                className={`w-full text-4xl font-bold border-b-2 border-gray-100 focus:border-black focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-gray-300 ${editType === TransactionType.INCOME ? 'text-green-600' : 'text-gray-900'}`}
+                                className={`w-full text-4xl font-black border-b-2 border-border focus:border-primary focus:outline-none py-4 pl-6 bg-transparent transition-colors placeholder:text-muted-foreground/10 ${editType === TransactionType.INCOME ? 'text-green-600' : 'text-foreground'}`}
                                 placeholder="0"
                                 inputMode="decimal"
                             />
@@ -97,27 +102,27 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 px-1">Descripción</label>
                         <input
                             type="text"
                             value={editDesc}
                             onChange={(e) => setEditDesc(e.target.value)}
-                            className="w-full p-4 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 font-medium text-lg"
-                            placeholder="Descripción..."
+                            className="w-full p-4 bg-secondary border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary font-black uppercase tracking-widest text-xs transition-all placeholder:text-muted-foreground/30"
+                            placeholder="DESCRIPCIÓN..."
                         />
                     </div>
 
                     {editType === TransactionType.EXPENSE && (
                         <>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría</label>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 px-1">Categoría</label>
                                 <div className="flex flex-wrap gap-2">
                                     {categories.map(c => (
                                         <button
                                             key={c}
                                             type="button"
                                             onClick={() => setEditCategory(c)}
-                                            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${editCategory === c ? 'bg-black text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${editCategory === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
                                         >
                                             {c}
                                         </button>
@@ -148,7 +153,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
                     <button
                         type="submit"
-                        className="w-full bg-black text-white font-bold py-4 rounded-2xl shadow-lg shadow-black/20 active:scale-[0.98] transition-all text-lg flex items-center justify-center gap-2"
+                        className="w-full bg-primary text-white font-black uppercase tracking-widest py-5 rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2"
                     >
                         <Save size={20} /> Guardar Cambios
                     </button>

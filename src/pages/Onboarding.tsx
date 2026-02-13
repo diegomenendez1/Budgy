@@ -17,8 +17,9 @@ const Onboarding: React.FC = () => {
     const [currency, setCurrency] = useState('USD');
     const [budget, setBudget] = useState('');
     const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const userName = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Viajero';
+    const userName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Viajero';
 
     const handleNext = () => {
         setStep(prev => prev + 1);
@@ -36,12 +37,15 @@ const Onboarding: React.FC = () => {
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             const initialAmount = parseFloat(budget) || 1000;
 
+            console.log('Onboarding: Creating initial cycle...', { initialAmount, currency });
             await createCycle(endOfMonth, initialAmount);
 
             // 3. Redirect
+            console.log('Onboarding: Success, navigating to dashboard');
             navigate('/dashboard');
         } catch (error) {
             console.error("Error finishing onboarding:", error);
+            setErrorMsg("Hubo un problema al crear tu espacio. Intenta nuevamente.");
         } finally {
             setLoading(false);
         }
@@ -65,17 +69,17 @@ const Onboarding: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center p-6 font-sans">
             {/* Background blobs for premium feel */}
-            <div className="absolute top-[-10%] left-[-20%] w-[150%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px]" />
-            <div className="absolute bottom-[-10%] right-[-20%] w-[150%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px]" />
+            <div className="absolute top-[-10%] left-[-20%] w-[150%] h-[50%] bg-primary/5 rounded-full blur-[100px]" />
+            <div className="absolute bottom-[-10%] right-[-20%] w-[150%] h-[50%] bg-purple-500/5 rounded-full blur-[100px]" />
 
-            <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl p-8 relative z-10 border border-white/10 min-h-[550px] flex flex-col">
+            <div className="w-full max-w-md bg-card border border-border rounded-[2.5rem] shadow-2xl p-8 relative z-10 min-h-[550px] flex flex-col">
 
                 {/* Progress Bar */}
                 <div className="flex gap-2 mb-10 px-2">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-white/10'}`} />
+                        <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' : 'bg-muted'}`} />
                     ))}
                 </div>
 
@@ -89,15 +93,15 @@ const Onboarding: React.FC = () => {
                             exit="exit"
                             className="flex-1 flex flex-col"
                         >
-                            <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Hola, {userName} <span className="animate-wave inline-block">👋</span></h2>
-                            <p className="text-gray-400 mb-8 leading-relaxed">Selecciona tu moneda principal para configurar tu espacio.</p>
+                            <h2 className="text-3xl font-black text-foreground mb-2 tracking-tight uppercase italic">Hola, {userName} <span className="animate-wave inline-block">👋</span></h2>
+                            <p className="text-muted-foreground mb-8 leading-relaxed uppercase tracking-widest text-[10px] font-black">Selecciona tu moneda principal</p>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {['USD', 'MXN', 'EUR', 'COP'].map(c => (
                                     <button
                                         key={c}
                                         onClick={() => setCurrency(c)}
-                                        className={`p-5 rounded-2xl border transition-all text-left relative overflow-hidden group ${currency === c ? 'bg-indigo-500/20 border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'}`}
+                                        className={`p-5 rounded-3xl border transition-all text-left relative overflow-hidden group ${currency === c ? 'bg-primary/5 border-primary shadow-xl shadow-primary/10' : 'bg-secondary border-border hover:bg-background'}`}
                                     >
                                         <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
@@ -106,8 +110,8 @@ const Onboarding: React.FC = () => {
                                                 {c === 'USD' ? '🇺🇸' : c === 'MXN' ? '🇲🇽' : c === 'EUR' ? '🇪🇺' : '🇨🇴'}
                                             </span>
                                             <div className="flex justify-between items-center">
-                                                <span className={`font-bold tracking-wide ${currency === c ? 'text-white' : 'text-gray-400'}`}>{c}</span>
-                                                {currency === c && <div className="bg-indigo-500 rounded-full p-1"><Check size={12} className="text-white" strokeWidth={3} /></div>}
+                                                <span className={`font-black tracking-widest ${currency === c ? 'text-primary' : 'text-muted-foreground'}`}>{c}</span>
+                                                {currency === c && <div className="bg-primary rounded-full p-1"><Check size={12} className="text-white" strokeWidth={3} /></div>}
                                             </div>
                                         </div>
                                     </button>
@@ -117,7 +121,7 @@ const Onboarding: React.FC = () => {
                             <div className="mt-auto pt-8">
                                 <Button
                                     onClick={handleNext}
-                                    className="w-full text-lg py-6 shadow-lg shadow-indigo-500/20"
+                                    className="w-full text-base py-6 shadow-xl shadow-primary/20 bg-primary text-white font-black uppercase tracking-widest rounded-2xl"
                                     icon={<ChevronRight />}
                                     iconPosition="right"
                                 >
@@ -140,16 +144,16 @@ const Onboarding: React.FC = () => {
                             <p className="text-gray-400 mb-8 leading-relaxed">¿Con cuánto dinero libre cuentas para cerrar este mes?</p>
 
                             <div className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-fuchsia-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 focus-within:border-indigo-500/50 focus-within:bg-white/10 transition-all flex items-center relative z-10">
-                                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mr-4">
-                                        <DollarSign className="text-green-400" size={24} />
+                                <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+                                <div className="bg-secondary border border-border rounded-[2rem] p-6 focus-within:border-primary focus-within:bg-background transition-all flex items-center relative z-10 shadow-inner">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mr-4">
+                                        <DollarSign className="text-primary" size={24} />
                                     </div>
                                     <input
                                         type="number"
                                         value={budget}
                                         onChange={(e) => setBudget(e.target.value)}
-                                        className="w-full text-4xl font-black text-white outline-none bg-transparent placeholder:text-gray-700 font-mono tracking-tight"
+                                        className="w-full text-4xl font-black text-foreground outline-none bg-transparent placeholder:text-muted-foreground/20 font-mono tracking-tighter"
                                         placeholder="0"
                                         autoFocus
                                     />
@@ -191,8 +195,8 @@ const Onboarding: React.FC = () => {
                                 </div>
                             </div>
 
-                            <h2 className="text-4xl font-black text-white mb-3 tracking-tight">¡Todo listo!</h2>
-                            <p className="text-gray-400 mb-10 text-lg leading-relaxed max-w-[280px] mx-auto">Tu espacio financiero ha sido creado con éxito.</p>
+                            <h2 className="text-4xl font-black text-foreground mb-3 tracking-tight uppercase italic">¡Listo!</h2>
+                            <p className="text-muted-foreground mb-10 text-xs leading-relaxed max-w-[280px] mx-auto uppercase tracking-[0.2em] font-black">Tu espacio financiero ha sido creado</p>
 
                             <div className="mt-auto pt-6 w-full">
                                 <Button
@@ -202,6 +206,9 @@ const Onboarding: React.FC = () => {
                                 >
                                     {loading ? 'Creando espacio...' : 'Ir a mi Dashboard'}
                                 </Button>
+                                {errorMsg && (
+                                    <p className="mt-4 text-red-400 text-xs font-medium">{errorMsg}</p>
+                                )}
                             </div>
                         </motion.div>
                     )}

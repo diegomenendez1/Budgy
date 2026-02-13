@@ -15,7 +15,8 @@ export const useRecurringManager = (userId: string | undefined) => {
     const effectiveUserId = userId || 'local-user';
 
     const recurringItems = useLiveQuery(
-        () => db.recurringItems.where('owner_id').equals(effectiveUserId).toArray()
+        () => db.recurringItems.where('owner_id').equals(effectiveUserId).toArray(),
+        [effectiveUserId]
     ) || [];
 
     const addRecurringItem = async (item: Omit<RecurringItem, 'id' | 'updated_at' | 'owner_id' | 'is_deleted'>) => {

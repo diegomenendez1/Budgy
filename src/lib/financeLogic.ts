@@ -23,8 +23,8 @@ export const calculateCycleMetrics = (
     const now = new Date();
     const start = new Date(activeCycle.startDate);
     const end = new Date(activeCycle.endDate);
-    start.setUTCHours(0, 0, 0, 0);
-    end.setUTCHours(23, 59, 59, 999);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
 
     const totalTime = end.getTime() - start.getTime();
     const daysTotal = Math.ceil(totalTime / (1000 * 3600 * 24)) || 1;

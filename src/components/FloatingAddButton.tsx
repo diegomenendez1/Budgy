@@ -7,9 +7,14 @@ import MagicInput from './transaction/MagicInput';
 import TransactionForm from './transaction/TransactionForm';
 import { cn } from '../lib/utils';
 
-const FloatingAddButton: React.FC = () => {
+const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) => {
     const { addTransaction, addRecurringItem, categories, addCategory, activeCycle, cycleMetrics, transferSavingsToBudget, apiKey } = useFinance();
     const [isOpen, setIsOpen] = useState(false);
+
+    // Close modal on tab change to avoid UX friction
+    useEffect(() => {
+        setIsOpen(false);
+    }, [currentTab]);
 
     // Transaction Type State
     const [txType, setTxType] = useState<TransactionType>(TransactionType.EXPENSE);
@@ -211,9 +216,10 @@ const FloatingAddButton: React.FC = () => {
                         className={cn(
                             "bg-card text-card-foreground w-full max-w-md p-6 shadow-2xl relative z-10",
                             "overflow-y-auto max-h-[85vh] transition-all duration-300 border border-border/50",
-                            "rounded-t-[2rem] sm:rounded-[2rem] pb-safe-nav sm:pb-6", // Mobile bottom sheet style
-                            "animate-in slide-in-bottom duration-300"
+                            "rounded-t-[2rem] sm:rounded-[2rem] pb-safe-nav sm:pb-6",
+                            "animate-in slide-in-from-bottom-5 fade-in duration-300"
                         )}
+                        onClick={(e) => e.stopPropagation()}
                     >
 
                         {/* Header */}
@@ -246,7 +252,7 @@ const FloatingAddButton: React.FC = () => {
 
                         {showSavingsAlert ? (
                             <div className="animate-in flex flex-col items-center text-center pt-2">
-                                <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-4 text-amber-600 dark:text-amber-400">
+                                <div className="bg-amber-100 p-4 rounded-full mb-4 text-amber-600">
                                     <AlertTriangle size={32} strokeWidth={2.5} />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Presupuesto Excedido</h3>

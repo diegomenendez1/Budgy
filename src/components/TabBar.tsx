@@ -14,7 +14,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
     { id: 'budget', label: 'Presupuesto', icon: Wallet },
     { id: 'planning', label: 'Plan', icon: CalendarRange },
     { id: 'coach', label: 'Coach', icon: Bot },
-    { id: 'insights', label: 'Insight', icon: Sparkles },
+    { id: 'insights', label: 'Insights', icon: Sparkles },
   ];
 
   return (
@@ -22,8 +22,8 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
       {/* Inner container to center the tab bar and apply constraints */}
       <div className="mx-auto max-w-lg pointer-events-auto">
         <div className={cn(
-          "glass border-t border-white/20 dark:border-white/5 pb-safe pt-2 px-2 transition-all duration-300",
-          "bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60"
+          "border-t border-border pb-safe pt-2 px-2 transition-all duration-300",
+          "bg-background/90 backdrop-blur-xl"
         )}>
           <div className="flex justify-around items-center">
             {tabs.map((tab) => {
