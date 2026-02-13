@@ -43,8 +43,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setSession(parsedSession);
                     setUser(parsedSession.user);
                 } else {
-                    // Force a dummy user for development/friction-free experience
-                    const guestUser = createMockUser('dev@budgy.local', 'Desarrollador');
+                    // Force a stable dummy user for development and consistent local data
+                    const guestUser = createMockUser('dev@budgy.local', 'Desarrollador', 'local-user');
                     setUser(guestUser);
                     setSession({
                         access_token: 'local-dev-token',
