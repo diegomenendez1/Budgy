@@ -21,26 +21,26 @@ const LoadingScreen = () => (
 
 // Route Guards
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  // const { user, loading } = useAuth();
+  // const location = useLocation();
 
-  if (loading) return <LoadingScreen />;
+  // if (loading) return <LoadingScreen />;
 
-  if (!user) {
-    return <Navigate to="/welcome" state={{ from: location }} replace />;
-  }
+  // if (!user) {
+  //   return <Navigate to="/welcome" state={{ from: location }} replace />;
+  // }
 
   return <>{children}</>;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  // const { user, loading } = useAuth();
 
-  if (loading) return <LoadingScreen />;
+  // if (loading) return <LoadingScreen />;
 
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // if (user) {
+  //   return <Navigate to="/dashboard" replace />;
+  // }
 
   return <>{children}</>;
 };
