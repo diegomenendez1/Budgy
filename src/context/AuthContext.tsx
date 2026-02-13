@@ -42,6 +42,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     const parsedSession = JSON.parse(storedSession);
                     setSession(parsedSession);
                     setUser(parsedSession.user);
+                } else {
+                    // Force a dummy user for development/friction-free experience
+                    const guestUser = createMockUser('dev@budgy.local', 'Desarrollador');
+                    setUser(guestUser);
+                    setSession({
+                        access_token: 'local-dev-token',
+                        user: guestUser,
+                        expires_at: Math.floor(Date.now() / 1000) + 3600 * 24 * 365
+                    });
                 }
             } catch (error) {
                 console.error("Local Auth Init Error:", error);

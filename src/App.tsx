@@ -50,9 +50,8 @@ const AppContent = () => {
   const { activeCycle, cycles } = useFinance();
   const location = useLocation();
 
-  // Onboarding logic: If user is logged in but has no cycles, 
-  // they MUST go to onboarding, unless they are already there.
-  const needsOnboarding = user && !activeCycle && cycles.length === 0;
+  // Onboarding logic: Disabled to ensure no redirects
+  const needsOnboarding = false; // user && !activeCycle && cycles.length === 0;
 
   if (needsOnboarding && location.pathname !== '/onboarding' && !authLoading) {
     return <Navigate to="/onboarding" replace />;
