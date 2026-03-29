@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { formatCurrency } from '../../../lib/utils';
 
@@ -55,8 +56,8 @@ const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, onCreateCycle,
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
             <div className="bg-card w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-6 pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4 relative z-10 border border-border overflow-y-auto max-h-[90vh]"
                  style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.5rem)' }}>
@@ -131,7 +132,8 @@ const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, onCreateCycle,
                     Confirmar e Iniciar
                 </button>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ArrowUp, ArrowDown, AlertTriangle, Save } from 'lucide-react';
 import { Transaction, TransactionType } from '../../../types';
 
@@ -54,8 +55,8 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
             <div className="bg-card w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 overflow-y-auto max-h-[90vh] animate-in sm:m-4 border border-border"
                  style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.5rem)' }}>
@@ -160,7 +161,8 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     </button>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

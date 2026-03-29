@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, AlertTriangle, Check, Sparkles, X } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType } from '../types';
@@ -111,14 +112,15 @@ const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) =>
                 </button>
             </div>
 
-            {isOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center animate-fade-in pointer-events-auto">
+            {isOpen && createPortal(
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center animate-fade-in">
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
                     <div
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
-                        className="bg-white text-card-foreground w-full max-w-md p-5 pb-8 shadow-xl relative z-10 overflow-y-auto max-h-[90vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl sm:pb-5 sm:m-4 animate-slide-in-bottom"
+                        className="bg-white text-card-foreground w-full max-w-md p-5 shadow-xl relative z-10 overflow-y-auto max-h-[90vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl sm:pb-5 sm:m-4 animate-slide-in-bottom"
+                        style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.5rem)' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -177,7 +179,8 @@ const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) =>
                             />
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

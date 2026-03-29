@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useFinance } from '../context/FinanceContext';
 import { TransactionType, RecurringItem } from '../types';
 import { Card } from '../components/ui/Card';
@@ -218,8 +219,8 @@ const Planning: React.FC = () => {
       </section>
 
       {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsModalOpen(false)} />
           <div className="bg-white w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-5 pointer-events-auto shadow-2xl animate-slide-in-bottom border border-slate-200 relative z-10 sm:m-4 max-h-[90vh] overflow-y-auto"
                style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.25rem)' }}>
@@ -288,7 +289,8 @@ const Planning: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

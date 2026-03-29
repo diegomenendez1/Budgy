@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2 } from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
@@ -10,8 +11,8 @@ interface DeleteConfirmationModalProps {
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ isOpen, onClose, onConfirm }) => {
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
             <div className="bg-card w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative z-10 animate-in transform scale-100 border border-border">
                 <div className="flex flex-col items-center text-center">
@@ -38,7 +39,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ isOpe
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

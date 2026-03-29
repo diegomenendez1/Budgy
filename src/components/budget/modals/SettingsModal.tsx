@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useFinance } from '../../../context/FinanceContext';
 import { Key, Lock, Check } from 'lucide-react';
 
@@ -26,7 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         }, 1000);
     };
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 bg-background/80 z-[100] flex items-center justify-center backdrop-blur-md p-4 animate-in">
             <div className="absolute inset-0" onClick={onClose}></div>
             <div className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 border border-border">
@@ -94,7 +95,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
