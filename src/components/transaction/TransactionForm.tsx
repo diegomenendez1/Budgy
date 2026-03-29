@@ -208,12 +208,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 </>
             )}
 
-            <button
-                type="submit"
-                className={`w-full font-bold uppercase tracking-wider py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all text-sm mt-2 min-h-[52px] tap-transparent ${txType === TransactionType.INCOME ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-foreground text-background shadow-foreground/10'}`}
-            >
-                {txType === TransactionType.INCOME ? 'Registrar Ingreso' : 'Confirmar Gasto'}
-            </button>
+            <div className="sticky bottom-0 bg-white pt-3 -mx-5 px-5 pb-2">
+                <button
+                    type="submit"
+                    className={`w-full font-bold uppercase tracking-wider py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all text-sm min-h-[52px] tap-transparent ${txType === TransactionType.INCOME ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-foreground text-background shadow-foreground/10'}`}
+                >
+                    {txType === TransactionType.INCOME ? 'Registrar Ingreso' : 'Confirmar Gasto'}
+                </button>
+            </div>
         </form>
     );
 };

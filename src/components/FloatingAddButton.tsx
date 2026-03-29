@@ -118,8 +118,7 @@ const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) =>
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
-                        className="bg-white text-card-foreground w-full max-w-md p-5 shadow-xl relative z-10 overflow-y-auto max-h-[90vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl sm:pb-5 sm:m-4 animate-slide-in-bottom"
-                        style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.25rem)' }}
+                        className="bg-white text-card-foreground w-full max-w-md p-5 pb-8 shadow-xl relative z-10 overflow-y-auto max-h-[90vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl sm:pb-5 sm:m-4 animate-slide-in-bottom"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
