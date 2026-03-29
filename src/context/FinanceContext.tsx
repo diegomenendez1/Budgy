@@ -134,7 +134,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Use active cycle's snapshot when available, global setting for planning only
   const effectiveSavingsGoal = activeCycle ? activeCycle.savingsGoal : savingsGoal;
-  const totalDisposableIncome = totalFixedIncome - totalFixedExpenses - effectiveSavingsGoal;
+  const totalBudgetBeforeSavings = totalFixedIncome - totalFixedExpenses;
+  const totalDisposableIncome = totalBudgetBeforeSavings - effectiveSavingsGoal;
 
   const activeCycleTransactions = useMemo(() => {
     if (!activeCycle) return [];
@@ -288,7 +289,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       transactions, recurringItems,
       addTransaction, updateTransaction, deleteTransaction,
       addRecurringItem, updateRecurringItem, deleteRecurringItem,
-      totalFixedIncome, totalFixedExpenses, totalDisposableIncome,
+      totalFixedIncome, totalFixedExpenses, totalDisposableIncome, totalBudgetBeforeSavings,
       currentSavingsGoal: savingsGoal, setSavingsGoal,
       setCurrency, apiKey, setApiKey,
       cycles, activeCycle, currency, createCycle, transferSavingsToBudget,

@@ -15,7 +15,7 @@ const Budget: React.FC = () => {
   const {
     activeCycle, createCycle, cycleMetrics, weeklyBreakdown, currentWeekStatus,
     transactions, updateTransaction, deleteTransaction, currentSavingsGoal,
-    setSavingsGoal, totalDisposableIncome, categories, currency, addTransaction
+    setSavingsGoal, totalBudgetBeforeSavings, categories, currency, addTransaction
   } = useFinance();
 
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
@@ -91,7 +91,7 @@ const Budget: React.FC = () => {
           </div>
         )}
 
-        <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalDisposableIncome} />
+        <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalBudgetBeforeSavings} />
       </div>
     );
   }
@@ -172,7 +172,7 @@ const Budget: React.FC = () => {
         </div>
       )}
 
-      <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalDisposableIncome} />
+      <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalBudgetBeforeSavings} />
       <EditTransactionModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} transaction={editingTx} onUpdate={handleUpdateTransaction} categories={categories} />
       <DeleteConfirmationModal isOpen={!!deleteConfirmationId} onClose={() => setDeleteConfirmationId(null)} onConfirm={executeDelete} />
       <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />

@@ -105,6 +105,7 @@ export interface FinancialContextType {
   totalFixedIncome: number;
   totalFixedExpenses: number;
   totalDisposableIncome: number; // Live "Free Money" calculation
+  totalBudgetBeforeSavings: number; // Income - expenses, before savings deduction
   currentSavingsGoal: number;
   setSavingsGoal: (amount: number) => void;
   setCurrency: (currency: string) => void;
