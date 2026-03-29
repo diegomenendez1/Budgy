@@ -8,24 +8,20 @@ interface TabBarProps {
   setTab: (tab: string) => void;
 }
 
-const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
-  const tabs = [
-    { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
-    { id: 'budget', label: 'Presupuesto', icon: Wallet },
-    { id: 'planning', label: 'Plan', icon: CalendarRange },
-    { id: 'coach', label: 'Coach', icon: Bot },
-    { id: 'insights', label: 'Insights', icon: Sparkles },
-  ];
+const tabs = [
+  { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
+  { id: 'budget', label: 'Budget', icon: Wallet },
+  { id: 'planning', label: 'Plan', icon: CalendarRange },
+  { id: 'coach', label: 'Coach', icon: Bot },
+  { id: 'insights', label: 'Insights', icon: Sparkles },
+];
 
+const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-      {/* Inner container to center the tab bar and apply constraints */}
       <div className="mx-auto max-w-lg pointer-events-auto">
-        <div className={cn(
-          "border-t border-border pb-safe pt-2 px-2 transition-all duration-300",
-          "bg-background/90 backdrop-blur-xl"
-        )}>
-          <div className="flex justify-around items-center">
+        <div className="mx-3 mb-2 rounded-2xl bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-lg shadow-black/[0.06]">
+          <div className="flex justify-around items-center py-2 px-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
@@ -36,33 +32,33 @@ const TabBar: React.FC<TabBarProps> = ({ currentTab, setTab }) => {
                   aria-label={tab.label}
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center w-16 h-[3.25rem]",
-                    "active:scale-95 transition-transform duration-100 ease-in-out"
+                    "relative flex flex-col items-center justify-center w-16 min-h-[44px] py-2.5 rounded-2xl",
+                    "active:scale-90 transition-all duration-150 ease-out",
+                    isActive && "bg-[#0052FF]/[0.06]"
                   )}
                 >
-                  {/* Active Indicator Background (Optional subtle glow) */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="tab-indicator"
-                      className="absolute -top-2 w-8 h-1 bg-primary rounded-full shadow-[0_2px_10px] shadow-primary/50"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-
                   <div className={cn(
-                    "relative p-1 rounded-xl transition-colors duration-300",
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    "relative transition-colors duration-200",
+                    isActive ? "text-[#0052FF]" : "text-slate-400"
                   )}>
-                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className="transition-all duration-300" />
+                    <Icon size={22} strokeWidth={isActive ? 2.2 : 1.6} />
                   </div>
 
                   <span className={cn(
-                    "text-[10px] font-medium tracking-tight mt-0.5 transition-colors duration-300",
-                    isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-foreground"
+                    "text-[10px] font-medium mt-1 transition-colors duration-200",
+                    isActive ? "text-[#0052FF] font-semibold" : "text-slate-400"
                   )}>
                     {tab.label}
                   </span>
+
+                  {isActive && (
+                    <motion.div
+                      layoutId="tab-indicator"
+                      className="absolute -bottom-0.5 w-5 h-[3px] rounded-full bg-gradient-to-r from-[#0052FF] to-[#4D7CFF]"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    />
+                  )}
                 </button>
               );
             })}

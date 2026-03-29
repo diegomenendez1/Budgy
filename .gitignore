@@ -1,34 +1,49 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Dependencies
+node_modules/
 
-node_modules
-dist
-dist-ssr
-*.local
+# Build output
+dist/
+dist-ssr/
+
+# Environment
 .env
 .env.*
 !.env.example
+*.local
 
-# Editor directories and files
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Playwright
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
-tests/results/
+
+# Debug artifacts
+*.png
+!public/**/*.png
+!src/**/*.png
+
+# Temp files
+.tmp/
+*.txt
+!LICENSE.txt

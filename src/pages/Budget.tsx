@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction, TransactionType } from '../types';
-import { RefreshCcw, Settings, AlertTriangle, Plus } from 'lucide-react';
-
-// UI Components
-import { Button } from '../components/ui/Button';
-
-// Budget Components
+import { Settings, AlertTriangle, Plus, Wallet } from 'lucide-react';
 import CycleCard from '../components/budget/CycleCard';
 import WeeklyBreakdown from '../components/budget/WeeklyBreakdown';
 import TransactionList from '../components/budget/TransactionList';
@@ -18,50 +13,25 @@ import CreateTransactionModal from '../components/budget/modals/CreateTransactio
 
 const Budget: React.FC = () => {
   const {
-    activeCycle,
-    createCycle,
-    cycleMetrics,
-    weeklyBreakdown,
-    currentWeekStatus,
-    transactions,
-    updateTransaction,
-    deleteTransaction,
-    currentSavingsGoal,
-    setSavingsGoal,
-    totalDisposableIncome,
-    categories,
-    currency,
-    addTransaction
+    activeCycle, createCycle, cycleMetrics, weeklyBreakdown, currentWeekStatus,
+    transactions, updateTransaction, deleteTransaction, currentSavingsGoal,
+    setSavingsGoal, totalDisposableIncome, categories, currency, addTransaction
   } = useFinance();
 
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-
-  // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-
-  // Create Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
 
   const handleCreateTransaction = (amount: number, description: string, category: string, type: TransactionType, isExceptional: boolean) => {
-    addTransaction({
-      amount,
-      description,
-      category,
-      type,
-      isExceptional,
-      date: new Date().toISOString()
-    });
+    addTransaction({ amount, description, category, type, isExceptional, date: new Date().toISOString() });
     setIsCreateModalOpen(false);
   };
 
-  // Delete Confirmation State
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
-
-  // Filter transactions for display
   const displayTransactions = activeCycle ? transactions.filter(t => {
     const d = new Date(t.date);
     const start = new Date(activeCycle.startDate);
@@ -75,70 +45,40 @@ const Budget: React.FC = () => {
 
   const handleEditSavings = () => {
     const newGoal = prompt("Define tu meta de ahorro para este ciclo:", currentSavingsGoal.toString());
-    if (newGoal !== null && !isNaN(parseFloat(newGoal))) {
-      setSavingsGoal(parseFloat(newGoal));
-    }
+    if (newGoal !== null && !isNaN(parseFloat(newGoal))) setSavingsGoal(parseFloat(newGoal));
   };
 
-  const toggleTxExpand = (id: string) => {
-    setExpandedTxId(prev => prev === id ? null : id);
-  };
+  const toggleTxExpand = (id: string) => setExpandedTxId(prev => prev === id ? null : id);
+  const openEditModal = (tx: Transaction) => { setEditingTx(tx); setIsEditModalOpen(true); };
+  const handleUpdateTransaction = (updatedTx: Transaction) => updateTransaction(updatedTx);
+  const confirmDelete = (id: string) => setDeleteConfirmationId(id);
+  const executeDelete = () => { if (deleteConfirmationId) { deleteTransaction(deleteConfirmationId); setDeleteConfirmationId(null); } };
 
-  const openEditModal = (tx: Transaction) => {
-    setEditingTx(tx);
-    setIsEditModalOpen(true);
-  };
-
-  const handleUpdateTransaction = (updatedTx: Transaction) => {
-    updateTransaction(updatedTx);
-  };
-
-  const confirmDelete = (id: string) => {
-    setDeleteConfirmationId(id);
-  };
-
-  const executeDelete = () => {
-    if (deleteConfirmationId) {
-      deleteTransaction(deleteConfirmationId);
-      setDeleteConfirmationId(null);
-    }
-  };
-
-  // RENDER EMPTY STATE (NO ACTIVE CYCLE)
+  // EMPTY STATE
   if (!activeCycle) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-8 animate-in fade-in zoom-in duration-700">
-        <div className="relative mb-8">
-          <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
-          <div className="relative bg-card/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border/50 shadow-2xl">
-            <RefreshCcw size={48} className="text-primary animate-spin-slow" strokeWidth={1.5} />
-          </div>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
+        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-200 mb-6">
+          <Wallet size={28} className="text-blue-600" />
         </div>
 
-        <h2 className="text-3xl font-bold text-foreground mb-4 tracking-tight leading-tight">
-          Tu nuevo comienzo <br /> <span className="text-primary">financiero</span>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2 font-sans">
+          Tu nuevo comienzo financiero
         </h2>
-
-        <p className="text-muted-foreground text-sm mb-10 max-w-[300px] leading-relaxed">
-          Define tus metas y toma el control. Un ciclo te ayuda a saber exactamente cuánto puedes gastar sin culpa.
+        <p className="text-slate-500 text-sm mb-8 max-w-[280px] leading-relaxed font-sans">
+          Un ciclo te ayuda a saber exactamente cuanto puedes gastar sin culpa.
         </p>
 
-        <Button
+        <button
           onClick={() => setIsCycleModalOpen(true)}
-          size="lg"
-          className="w-full max-w-xs text-lg h-14 rounded-2xl shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="w-full max-w-xs h-12 px-8 text-base font-medium rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.97] transition-all duration-150 shadow-sm font-sans"
         >
-          ¡Empezar Ciclo Ahora!
-        </Button>
+          Empezar Ciclo
+        </button>
 
-        {/* Recent Transactions fall-through for users without cycle */}
         {transactions.length > 0 && (
-          <div className="w-full mt-12 px-2 pb-24 text-left max-w-md mx-auto">
-            <div className="flex items-center gap-4 mb-6 opacity-60">
-              <div className="h-px bg-white/10 flex-1"></div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Movimientos Recientes</span>
-              <div className="h-px bg-white/10 flex-1"></div>
-            </div>
+          <div className="w-full mt-10 text-left max-w-md mx-auto">
+            <p className="text-xs text-slate-500 font-medium mb-4 px-1 font-sans">Movimientos Recientes</p>
             <TransactionList
               displayTransactions={transactions.slice(0, 5)}
               currency={currency}
@@ -151,41 +91,32 @@ const Budget: React.FC = () => {
           </div>
         )}
 
-        <CycleModal
-          isOpen={isCycleModalOpen}
-          onClose={() => setIsCycleModalOpen(false)}
-          onCreateCycle={createCycle}
-          initialBudgetGuess={totalDisposableIncome}
-        />
+        <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalDisposableIncome} />
       </div>
     );
   }
 
-  // RENDER BUDGET VIEW (ACTIVE CYCLE)
+  // ACTIVE CYCLE
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8 pt-6 relative pb-32">
-      <header className="flex justify-between items-center px-1">
+    <div className="space-y-6 pt-6 pb-8">
+      <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight italic uppercase">Presupuesto</h1>
-          <p className="text-muted-foreground text-sm font-medium">Control total en tus manos</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-sans">Presupuesto</h1>
+          <p className="text-slate-500 text-xs font-medium font-sans">Control total en tus manos</p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="glass"
-            size="icon"
+          <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="rounded-full w-12 h-12 bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+            className="w-10 h-10 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
-            <Plus size={24} />
-          </Button>
-          <Button
-            variant="glass"
-            size="icon"
+            <Plus size={20} className="text-slate-700" />
+          </button>
+          <button
             onClick={() => setIsSettingsModalOpen(true)}
-            className="rounded-full w-12 h-12"
+            className="w-10 h-10 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
-            <Settings size={20} />
-          </Button>
+            <Settings size={18} className="text-slate-700" />
+          </button>
         </div>
       </header>
 
@@ -217,21 +148,17 @@ const Budget: React.FC = () => {
       />
 
       {outOfCycleTransactions.length > 0 && (
-        <div className="px-4 py-4">
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[1.5rem] p-5 mb-4 backdrop-blur-md">
-            <div className="flex items-center gap-3 mb-2 text-amber-400 font-bold text-sm">
-              <div className="bg-amber-500/20 p-1.5 rounded-lg">
-                <AlertTriangle size={16} />
-              </div>
-              <span className="tracking-tight">Movimientos Fuera de Ciclo</span>
+        <div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
+            <div className="flex items-center gap-2 mb-1 text-amber-700 font-medium text-sm font-sans">
+              <AlertTriangle size={14} />
+              <span>Fuera de Ciclo</span>
             </div>
-            <p className="text-xs text-muted-foreground/80 leading-relaxed font-medium pl-1">
+            <p className="text-[11px] text-amber-600 leading-relaxed font-sans">
               Transacciones con fecha distinta al ciclo activo.
             </p>
           </div>
-
-          <div className="opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 transition-all duration-300">
-            <div className="bg-white/10 h-px w-full mb-6"></div>
+          <div className="opacity-50 hover:opacity-100 transition-opacity duration-300">
             <TransactionList
               displayTransactions={outOfCycleTransactions}
               currency={currency}
@@ -239,45 +166,17 @@ const Budget: React.FC = () => {
               toggleTxExpand={toggleTxExpand}
               openEditModal={openEditModal}
               confirmDelete={confirmDelete}
-              handleOpenCycleModal={() => { }}
+              handleOpenCycleModal={() => {}}
             />
           </div>
         </div>
       )}
 
-      <CycleModal
-        isOpen={isCycleModalOpen}
-        onClose={() => setIsCycleModalOpen(false)}
-        onCreateCycle={createCycle}
-        initialBudgetGuess={totalDisposableIncome}
-      />
-
-      <EditTransactionModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        transaction={editingTx}
-        onUpdate={handleUpdateTransaction}
-        categories={categories}
-      />
-
-      <DeleteConfirmationModal
-        isOpen={!!deleteConfirmationId}
-        onClose={() => setDeleteConfirmationId(null)}
-        onConfirm={executeDelete}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
-
-      <CreateTransactionModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateTransaction}
-        categories={categories}
-        currency={currency}
-      />
+      <CycleModal isOpen={isCycleModalOpen} onClose={() => setIsCycleModalOpen(false)} onCreateCycle={createCycle} initialBudgetGuess={totalDisposableIncome} />
+      <EditTransactionModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} transaction={editingTx} onUpdate={handleUpdateTransaction} categories={categories} />
+      <DeleteConfirmationModal isOpen={!!deleteConfirmationId} onClose={() => setDeleteConfirmationId(null)} onConfirm={executeDelete} />
+      <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
+      <CreateTransactionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onCreate={handleCreateTransaction} categories={categories} currency={currency} />
     </div>
   );
 };

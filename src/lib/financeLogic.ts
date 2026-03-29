@@ -8,14 +8,18 @@ export const calculateCycleMetrics = (
         return {
             daysPassed: 0,
             daysTotal: 30,
+            daysLeft: 30,
             progressPercentage: 0,
             totalAvailable: 0,
+            spendableBudget: 0,
             remainingBudget: 0,
             spentThisCycle: 0,
             spentPace: 0,
+            exceptionalSpent: 0,
             idealDailyBudget: 0,
             currentSurplus: 0,
             isOverspending: false,
+            isBudgetExceeded: false,
             suggestedDailyBudget: null,
         };
     }
@@ -27,14 +31,17 @@ export const calculateCycleMetrics = (
     end.setHours(23, 59, 59, 999);
 
     const totalTime = end.getTime() - start.getTime();
-    const daysTotal = Math.ceil(totalTime / (1000 * 3600 * 24)) || 1;
+    const daysTotal = Math.round(totalTime / (1000 * 3600 * 24)) || 1;
 
+    const cycleEnded = now > end;
     const elapsedTime = Math.min(Math.max(0, now.getTime() - start.getTime()), totalTime);
-    const daysPassed = Math.ceil(elapsedTime / (1000 * 3600 * 24)) || 1; // 1-based index
+    const daysPassed = Math.ceil(elapsedTime / (1000 * 3600 * 24)) || 1;
+    // daysLeft = remaining days including today (min 1 while cycle active)
+    const daysLeft = cycleEnded ? 0 : Math.max(1, daysTotal - daysPassed);
 
     const progressPercentage = Math.min(100, (daysPassed / daysTotal) * 100);
 
-    // Calculate Totals
+    // --- Totals ---
     const spentThisCycle = activeCycleTransactions
         .filter((t) => t.type === TransactionType.EXPENSE)
         .reduce((acc, t) => acc + t.amount, 0);
@@ -43,48 +50,51 @@ export const calculateCycleMetrics = (
         .filter((t) => t.type === TransactionType.INCOME)
         .reduce((acc, t) => acc + t.amount, 0);
 
-    // Calculate Pace: Exclude exceptional expenses AND incomes
+    const exceptionalSpent = activeCycleTransactions
+        .filter((t) => t.type === TransactionType.EXPENSE && t.isExceptional)
+        .reduce((acc, t) => acc + t.amount, 0);
+
     const spentPace = activeCycleTransactions
         .filter((t) => t.type === TransactionType.EXPENSE && !t.isExceptional)
         .reduce((acc, t) => acc + t.amount, 0);
 
-    // Initial Budget is what was "Free Money" when cycle started
-    // Plus any extra variable income registered during the cycle
+    // --- Budget hierarchy ---
+    // totalAvailable: all money in the cycle (initial + variable income)
     const totalAvailable = activeCycle.initialBudget + incomeThisCycle;
+    // spendableBudget: what can actually be spent (subtract savings goal)
+    const spendableBudget = totalAvailable - activeCycle.savingsGoal;
+    // remainingBudget: real money left after ALL expenses
+    const remainingBudget = spendableBudget - spentThisCycle;
 
-    const remainingBudget = totalAvailable - spentThisCycle;
-
-    // Pace Logic
-    const idealDailyBudget = totalAvailable / daysTotal;
+    // --- Pace logic ---
+    // paceBudget: spendable minus exceptional (the pool for regular daily spending)
+    const paceBudget = Math.max(0, spendableBudget - exceptionalSpent);
+    const idealDailyBudget = paceBudget / daysTotal;
     const idealSpendToDate = idealDailyBudget * daysPassed;
-
-    // Surplus
     const currentSurplus = idealSpendToDate - spentPace;
-
-    // Overspending if deficit is significant
     const isOverspending = currentSurplus < 0;
+    const isBudgetExceeded = remainingBudget < 0;
 
-    let suggestedDailyBudget = null;
-    if (isOverspending) {
-        const daysLeft = daysTotal - daysPassed;
-        if (daysLeft > 0) {
-            // Remaining from the 'Pace' budget perspective
-            const remainingForPace = totalAvailable - spentPace;
-            suggestedDailyBudget = Math.max(0, remainingForPace / daysLeft);
-        }
-    }
+    // --- Suggested daily: always based on REAL remaining budget ---
+    const suggestedDailyBudget = daysLeft > 0
+        ? Math.max(0, remainingBudget / daysLeft)
+        : null;
 
     return {
         daysPassed,
         daysTotal,
+        daysLeft,
         progressPercentage,
         totalAvailable,
+        spendableBudget,
         remainingBudget,
         spentThisCycle,
         spentPace,
+        exceptionalSpent,
         idealDailyBudget,
         currentSurplus,
         isOverspending,
+        isBudgetExceeded,
         suggestedDailyBudget,
     };
 };
@@ -97,36 +107,43 @@ export const calculateWeeklyBreakdown = (
 
     const weeks: WeeklyStatus[] = [];
     const start = new Date(activeCycle.startDate);
-    start.setUTCHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
     const cycleEnd = new Date(activeCycle.endDate);
-    cycleEnd.setUTCHours(23, 59, 59, 999);
+    cycleEnd.setHours(23, 59, 59, 999);
 
     const now = new Date();
 
     const totalTime = cycleEnd.getTime() - start.getTime();
-    const cycleTotalDays = Math.ceil(totalTime / (1000 * 3600 * 24)) || 1;
-    const initialTotalBudget = activeCycle.initialBudget;
+    const cycleTotalDays = Math.round(totalTime / (1000 * 3600 * 24)) || 1;
 
-    // Original static average for reference (based on INITIAL budget only)
-    const originalDailyAverage = initialTotalBudget / cycleTotalDays;
+    // Total income across the cycle (same base as calculateCycleMetrics)
+    const totalCycleIncome = activeCycleTransactions
+        .filter((t) => t.type === TransactionType.INCOME)
+        .reduce((acc, t) => acc + t.amount, 0);
+
+    // Spendable budget = initial + ALL income - savings goal (matches metrics)
+    const spendableBudget = activeCycle.initialBudget + totalCycleIncome - activeCycle.savingsGoal;
+    const dailyRate = spendableBudget / cycleTotalDays;
 
     let currentIterDate = new Date(start);
     let weekNum = 1;
     let accumulatedSpentPast = 0;
-    let accumulatedIncome = 0; // Track variable income over time
+    let accumulatedAllocated = 0;
     let daysPassedTotal = 0;
+
+    // For future weeks: compute a single daily rate once (after current week)
+    let futureDailyRate: number | null = null;
 
     while (currentIterDate <= cycleEnd) {
         const wStart = new Date(currentIterDate);
         const wEnd = new Date(currentIterDate);
-        wEnd.setUTCDate(wStart.getUTCDate() + 6);
-        wEnd.setUTCHours(23, 59, 59, 999);
+        wEnd.setDate(wStart.getDate() + 6);
+        wEnd.setHours(23, 59, 59, 999);
 
         if (wEnd > cycleEnd) {
             wEnd.setTime(cycleEnd.getTime());
         }
 
-        // Is Current logic strictly needs careful timezone handling too, but for breakdown simulation we check overlap
         const isCurrent = now >= wStart && now <= wEnd;
         const isPast = wEnd < now && !isCurrent;
         const isFuture = wStart > now;
@@ -134,9 +151,9 @@ export const calculateWeeklyBreakdown = (
         const daysInWeek = Math.ceil((wEnd.getTime() - wStart.getTime()) / (1000 * 3600 * 24));
         const effectiveDaysInWeek = Math.max(1, daysInWeek);
 
-        // Get transactions for this week
         const weekTransactions = activeCycleTransactions.filter((t) => {
             const d = new Date(t.date);
+            d.setHours(0, 0, 0, 0);
             return d >= wStart && d <= wEnd;
         });
 
@@ -144,60 +161,52 @@ export const calculateWeeklyBreakdown = (
             .filter((t) => t.type === TransactionType.EXPENSE)
             .reduce((acc, t) => acc + t.amount, 0);
 
-        const weekIncome = weekTransactions
-            .filter((t) => t.type === TransactionType.INCOME)
-            .reduce((acc, t) => acc + t.amount, 0);
-
         let limit = 0;
 
         if (isPast) {
-            // Past weeks keep limits based on when they happened.
-            limit = originalDailyAverage * effectiveDaysInWeek;
+            // Past weeks: limit = max(what was spent, pro-rata allocation)
+            // This way, past limits reflect reality and don't over-claim budget
+            const proRataLimit = dailyRate * effectiveDaysInWeek;
+            limit = Math.max(weekSpent, proRataLimit);
 
             accumulatedSpentPast += weekSpent;
-            accumulatedIncome += weekIncome;
+            accumulatedAllocated += limit;
             daysPassedTotal += effectiveDaysInWeek;
         } else if (isCurrent) {
-            // DYNAMIC LOGIC:
-            const totalAvailablePool = initialTotalBudget + accumulatedIncome + weekIncome;
-            const balanceNow = totalAvailablePool - accumulatedSpentPast - weekSpent;
+            // Balance = total budget minus what was ALLOCATED to past weeks (not just spent)
+            const balanceAfterPast = spendableBudget - accumulatedAllocated;
+            const balanceNow = balanceAfterPast - weekSpent;
 
-            // Days remaining in cycle total (including this week)
-            const daysRemainingTotal = cycleTotalDays - daysPassedTotal;
+            const daysRemainingInCycle = cycleTotalDays - daysPassedTotal;
+            const daysPassedInWeek = Math.max(0, Math.floor((now.getTime() - wStart.getTime()) / (1000 * 3600 * 24)));
+            const daysLeftInWeek = Math.max(1, effectiveDaysInWeek - daysPassedInWeek);
+            const daysLeftInCycleFromTomorrow = Math.max(1, daysRemainingInCycle - daysPassedInWeek);
 
-            // Calculate days passed WITHIN this week
-            const daysPassedInWeek = Math.max(0, Math.ceil((now.getTime() - wStart.getTime()) / (1000 * 3600 * 24)));
-            const daysLeftInWeek = effectiveDaysInWeek - daysPassedInWeek;
-            const daysLeftInCycleFromTomorrow = daysRemainingTotal - daysPassedInWeek;
+            const newDailyBudget = balanceAfterPast > 0
+                ? balanceAfterPast / daysRemainingInCycle
+                : 0;
 
-            // The "New Daily Budget" for the future is based on Balance NOW divided by Future Days
-            const newDailyBudget = daysLeftInCycleFromTomorrow > 0 ? balanceNow / daysLeftInCycleFromTomorrow : 0;
+            limit = weekSpent + Math.max(0, newDailyBudget) * daysLeftInWeek;
 
-            // The limit for THIS week is: What we spent + (New Daily * Days Left in Week)
-            limit = weekSpent + newDailyBudget * daysLeftInWeek;
+            accumulatedSpentPast += weekSpent;
+            accumulatedAllocated += limit;
+            daysPassedTotal += effectiveDaysInWeek;
 
-            // Sanity check
-            if (balanceNow < 0) {
-                limit = weekSpent;
+            // Future daily rate from unallocated balance
+            const futureDaysRemaining = cycleTotalDays - daysPassedTotal;
+            const futureBalance = spendableBudget - accumulatedAllocated;
+            futureDailyRate = futureDaysRemaining > 0
+                ? Math.max(0, futureBalance / futureDaysRemaining)
+                : 0;
+        } else if (isFuture) {
+            if (futureDailyRate === null) {
+                const futureBalance = spendableBudget - accumulatedAllocated;
+                const futureDaysRemaining = Math.max(1, cycleTotalDays - daysPassedTotal);
+                futureDailyRate = Math.max(0, futureBalance / futureDaysRemaining);
             }
 
-            accumulatedSpentPast += weekSpent;
-            accumulatedIncome += weekIncome;
-            daysPassedTotal += effectiveDaysInWeek;
-        } else if (isFuture) {
-            // FUTURE WEEKS:
-            const totalAvailablePool = initialTotalBudget + accumulatedIncome;
-            const balanceRemaining = totalAvailablePool - accumulatedSpentPast;
-            const daysRemaining = Math.max(1, cycleTotalDays - daysPassedTotal);
-
-            const adjustedDaily = balanceRemaining / daysRemaining;
-
-            limit = adjustedDaily * effectiveDaysInWeek;
-
-            if (balanceRemaining <= 0) limit = 0;
-
-            accumulatedSpentPast += weekSpent;
-            accumulatedIncome += weekIncome;
+            limit = futureDailyRate * effectiveDaysInWeek;
+            accumulatedAllocated += limit;
             daysPassedTotal += effectiveDaysInWeek;
         }
 
@@ -213,8 +222,8 @@ export const calculateWeeklyBreakdown = (
         });
 
         currentIterDate = new Date(wEnd);
-        currentIterDate.setUTCDate(currentIterDate.getUTCDate() + 1);
-        currentIterDate.setUTCHours(0, 0, 0, 0);
+        currentIterDate.setDate(currentIterDate.getDate() + 1);
+        currentIterDate.setHours(0, 0, 0, 0);
         weekNum++;
     }
 

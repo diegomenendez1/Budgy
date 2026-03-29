@@ -5,43 +5,26 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import {
-  Trash2,
-  Plus,
-  CheckCircle2,
-  X,
-  TrendingUp,
-  TrendingDown,
-  PiggyBank,
-  Tag,
+  Trash2, Plus, CheckCircle2, X, TrendingUp, TrendingDown, PiggyBank, Tag, ArrowUpRight, ArrowDownRight,
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
+import { cn } from '../lib/utils';
 
-
-// Category color mappings for badges
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'Vivienda': { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-  'Servicios': { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20' },
-  'Transporte': { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' },
-  'Suscripciones': { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-  'Seguros': { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
-  'Educación': { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
-  'Salud': { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
-  'Otros': { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' },
+  'Vivienda': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Servicios': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  'Transporte': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  'Suscripciones': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  'Seguros': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
+  'Educacion': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  'Salud': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+  'Otros': { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
 };
 
 const INCOME_CATEGORIES = ['Salario', 'Freelance', 'Inversiones', 'Alquiler', 'Otros'];
 
 const Planning: React.FC = () => {
-  const {
-    recurringItems,
-    addRecurringItem,
-    deleteRecurringItem,
-    currentSavingsGoal,
-    setSavingsGoal,
-    currency,
-    categories
-  } = useFinance();
-
+  const { recurringItems, addRecurringItem, deleteRecurringItem, currentSavingsGoal, setSavingsGoal, currency, categories } = useFinance();
 
   const [localSavings, setLocalSavings] = useState(currentSavingsGoal.toString());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,9 +34,7 @@ const Planning: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
 
-  useEffect(() => {
-    setLocalSavings(currentSavingsGoal.toString());
-  }, [currentSavingsGoal]);
+  useEffect(() => { setLocalSavings(currentSavingsGoal.toString()); }, [currentSavingsGoal]);
 
   const incomes = recurringItems.filter(i => i.type === TransactionType.INCOME);
   const expenses = recurringItems.filter(i => i.type === TransactionType.EXPENSE);
@@ -76,10 +57,7 @@ const Planning: React.FC = () => {
       setAmount(item.amount.toString());
       setCategory(item.category || '');
     } else {
-      setEditingItem(null);
-      setDesc('');
-      setAmount('');
-      setCategory('');
+      setEditingItem(null); setDesc(''); setAmount(''); setCategory('');
     }
     setIsModalOpen(true);
   };
@@ -89,238 +67,201 @@ const Planning: React.FC = () => {
     if (!desc || !amount) return;
     const val = parseFloat(amount);
     if (isNaN(val)) return;
-
     if (editingItem) deleteRecurringItem(editingItem.id);
-
-    addRecurringItem({
-      description: desc,
-      amount: val,
-      type: modalType,
-      category: category || undefined,
-    });
+    addRecurringItem({ description: desc, amount: val, type: modalType, category: category || undefined });
     setIsModalOpen(false);
     setCategory('');
   };
 
   return (
-    <div className="animate-in pt-6 pb-32 space-y-8">
-      <header className="">
-        <h1 className="text-3xl font-black text-foreground tracking-tight italic uppercase">Planificación</h1>
-        <p className="text-muted-foreground text-sm font-medium">Diseña tu mes ideal</p>
+    <div className="pt-6 pb-8 space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold font-sans text-slate-900 tracking-tight">Planificacion</h1>
+        <p className="text-slate-500 text-xs font-medium mt-0.5">Disena tu mes ideal</p>
       </header>
 
-      {/* 1. Dashboard Math Panel */}
-      <Card className="mx-4 relative overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 border-white/10 shadow-2xl">
-        {/* Background accent */}
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-500 rounded-full blur-[60px] opacity-30"></div>
-        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-500 rounded-full blur-[60px] opacity-20"></div>
-
-        <div className="p-6 relative z-10">
-          <div className="flex justify-between items-center mb-8">
+      {/* Summary Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm">
+        <div className="p-5">
+          <div className="flex justify-between items-start mb-5">
             <div>
-              <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">Resultado Final</p>
-              <h2 className={`text-4xl font-black tracking-tighter ${freeMoney < 0 ? 'text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.5)]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>
+              <p className="text-xs text-slate-500 font-medium mb-1">Resultado Final</p>
+              <p className={cn(
+                "text-3xl font-bold font-sans tracking-tight tabular-nums",
+                freeMoney < 0 ? 'text-red-600' : 'text-emerald-700'
+              )}>
                 {formatCurrency(freeMoney, currency)}
-              </h2>
-
-              <p className="text-white/70 text-xs font-bold mt-1">Disponible (Variable)</p>
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1">Disponible (Variable)</p>
             </div>
-            <div className={`h-12 w-12 rounded-full border backdrop-blur-md flex items-center justify-center shadow-lg ${freeMoney < 0 ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-green-500/20 border-green-500/30 text-green-400'}`}>
-              <CheckCircle2 size={24} />
+            <div className={cn(
+              "h-10 w-10 rounded-xl flex items-center justify-center border",
+              freeMoney < 0
+                ? 'bg-red-50 border-red-200 text-red-600'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            )}>
+              <CheckCircle2 size={20} />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="bg-emerald-500/20 p-1.5 rounded-full">
-                  <TrendingUp size={12} className="text-emerald-400" />
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100">
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center">
+                  <ArrowUpRight size={12} className="text-emerald-700" />
                 </div>
-                <span className="text-xs text-white/90 font-bold uppercase tracking-wide">Ingresos</span>
+                <span className="text-[11px] text-slate-500 font-medium">Ingresos</span>
               </div>
-              <span className="text-xl font-black text-white">{formatCurrency(totalFixedIncome, currency)}</span>
-
+              <span className="text-lg font-bold font-sans text-slate-900 tabular-nums">{formatCurrency(totalFixedIncome, currency)}</span>
             </div>
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="bg-red-500/20 p-1.5 rounded-full">
-                  <TrendingDown size={12} className="text-red-400" />
+            <div className="bg-red-50/50 rounded-xl p-3.5 border border-red-100">
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-5 h-5 rounded-md bg-red-100 flex items-center justify-center">
+                  <ArrowDownRight size={12} className="text-red-600" />
                 </div>
-                <span className="text-xs text-white/90 font-bold uppercase tracking-wide">Fijos</span>
+                <span className="text-[11px] text-slate-500 font-medium">Gastos Fijos</span>
               </div>
-              <span className="text-xl font-black text-white">{formatCurrency(-totalFixedExpenses, currency)}</span>
-
+              <span className="text-lg font-bold font-sans text-slate-900 tabular-nums">{formatCurrency(-totalFixedExpenses, currency)}</span>
             </div>
           </div>
 
           {/* Savings Input */}
-          <div className="bg-secondary p-4 rounded-2xl border border-secondary/50 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500/10 p-2 rounded-xl border border-blue-500/20">
-                <PiggyBank size={18} className="text-secondary-foreground" />
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                <PiggyBank size={16} className="text-blue-600" />
               </div>
-              <span className="text-sm text-secondary-foreground font-black tracking-wide">Meta Ahorro</span>
+              <span className="text-sm text-slate-900 font-medium">Meta Ahorro</span>
             </div>
-            <div className="flex items-center gap-1 bg-white p-2 px-4 rounded-xl border border-secondary/50 shadow-inner group focus-within:ring-2 focus-within:ring-blue-500/50 transition-all">
-              <span className="text-secondary-foreground text-sm font-black">$</span>
+            <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-slate-200 focus-within:border-blue-400 transition-colors">
+              <span className="text-slate-500 text-sm font-medium">$</span>
               <input
                 type="number"
+                inputMode="decimal"
                 value={localSavings}
                 onChange={(e) => setLocalSavings(e.target.value)}
                 onBlur={handleSavingsBlur}
-                className="w-20 text-right font-black text-secondary-foreground bg-transparent focus:outline-none placeholder-secondary-foreground/20"
+                className="w-20 text-right font-semibold text-slate-900 bg-transparent focus:outline-none placeholder-slate-300 tabular-nums"
                 placeholder="0"
-                inputMode="decimal"
               />
             </div>
           </div>
         </div>
-      </Card>
-
-      {/* 2. Lists */}
-      <div className="space-y-8 px-4">
-        {/* Incomes */}
-        <div>
-          <div className="flex justify-between items-end mb-4 px-1">
-            <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Ingresos Fijos</h3>
-            <Button
-              size="sm"
-              variant="glass"
-              onClick={() => openModal(TransactionType.INCOME)}
-              className="h-8 text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20"
-            >
-              <Plus size={12} strokeWidth={3} className="mr-1" /> Agregar
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {incomes.map(item => {
-              const catColors = CATEGORY_COLORS[item.category || 'Otros'] || CATEGORY_COLORS['Otros'];
-              return (
-                <div key={item.id} onClick={() => openModal(TransactionType.INCOME, item)} className="bg-card/50 hover:bg-card backdrop-blur-sm p-4 rounded-[1.5rem] border border-border flex justify-between items-center shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
-                  <div className="flex flex-col gap-1.5">
-                    <p className="font-bold text-foreground group-hover:text-emerald-500 transition-colors">{item.description}</p>
-                    {item.category && (
-                      <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${catColors.bg} ${catColors.text} ${catColors.border} border w-fit`}>
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-black text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-xl text-sm border border-emerald-500/10 shadow-inner">{formatCurrency(item.amount, currency)}</span>
-                </div>
-
-              )
-            })}
-            {incomes.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-border rounded-[2rem] bg-secondary/20 backdrop-blur-sm">
-                <p className="text-muted-foreground text-xs font-bold">Sin ingresos registrados</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Expenses */}
-        <div>
-          <div className="flex justify-between items-end mb-4 px-1">
-            <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Gastos Fijos</h3>
-            <Button
-              size="sm"
-              variant="glass"
-              onClick={() => openModal(TransactionType.EXPENSE)}
-              className="h-8 text-[10px] uppercase tracking-wider bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20"
-            >
-              <Plus size={12} strokeWidth={3} className="mr-1" /> Agregar
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {expenses.map(item => {
-              const catColors = CATEGORY_COLORS[item.category || 'Otros'] || CATEGORY_COLORS['Otros'];
-              return (
-                <div key={item.id} onClick={() => openModal(TransactionType.EXPENSE, item)} className="bg-card/50 hover:bg-card backdrop-blur-sm p-4 rounded-[1.5rem] border border-border flex justify-between items-center shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
-                  <div className="flex flex-col gap-1.5">
-                    <p className="font-bold text-foreground group-hover:text-red-500 transition-colors">{item.description}</p>
-                    {item.category && (
-                      <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${catColors.bg} ${catColors.text} ${catColors.border} border w-fit`}>
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-black text-foreground bg-secondary px-3 py-1 rounded-xl text-sm border border-border shadow-inner">{formatCurrency(-item.amount, currency)}</span>
-                </div>
-
-              )
-            })}
-            {expenses.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-border rounded-[2rem] bg-secondary/20 backdrop-blur-sm">
-                <p className="text-muted-foreground text-xs font-bold">Sin gastos fijos registrados</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
+
+      {/* Incomes */}
+      <section>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-sm font-bold font-sans text-slate-900">Ingresos Fijos</h3>
+          <Button size="sm" variant="income" onClick={() => openModal(TransactionType.INCOME)} className="h-8 text-xs">
+            <Plus size={14} className="mr-1" /> Agregar
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {incomes.map(item => {
+            const catColors = CATEGORY_COLORS[item.category || 'Otros'] || CATEGORY_COLORS['Otros'];
+            return (
+              <div key={item.id} onClick={() => openModal(TransactionType.INCOME, item)}
+                className="bg-white border border-slate-200/60 rounded-xl p-3.5 flex justify-between items-center hover:bg-slate-50 transition-colors active:scale-[0.98] cursor-pointer">
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-sm text-slate-900">{item.description}</p>
+                  {item.category && (
+                    <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-md w-fit border", catColors.bg, catColors.text, catColors.border)}>
+                      {item.category}
+                    </span>
+                  )}
+                </div>
+                <span className="font-semibold text-emerald-700 text-sm tabular-nums">{formatCurrency(item.amount, currency)}</span>
+              </div>
+            );
+          })}
+          {incomes.length === 0 && (
+            <div className="text-center py-8 border border-dashed border-slate-200 rounded-xl">
+              <p className="text-slate-500 text-xs">Sin ingresos registrados</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Expenses */}
+      <section>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-sm font-bold font-sans text-slate-900">Gastos Fijos</h3>
+          <Button size="sm" variant="expense" onClick={() => openModal(TransactionType.EXPENSE)} className="h-8 text-xs">
+            <Plus size={14} className="mr-1" /> Agregar
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {expenses.map(item => {
+            const catColors = CATEGORY_COLORS[item.category || 'Otros'] || CATEGORY_COLORS['Otros'];
+            return (
+              <div key={item.id} onClick={() => openModal(TransactionType.EXPENSE, item)}
+                className="bg-white border border-slate-200/60 rounded-xl p-3.5 flex justify-between items-center hover:bg-slate-50 transition-colors active:scale-[0.98] cursor-pointer">
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-sm text-slate-900">{item.description}</p>
+                  {item.category && (
+                    <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-md w-fit border", catColors.bg, catColors.text, catColors.border)}>
+                      {item.category}
+                    </span>
+                  )}
+                </div>
+                <span className="font-semibold text-red-600 text-sm tabular-nums">{formatCurrency(-item.amount, currency)}</span>
+              </div>
+            );
+          })}
+          {expenses.length === 0 && (
+            <div className="text-center py-8 border border-dashed border-slate-200 rounded-xl">
+              <p className="text-slate-500 text-xs">Sin gastos fijos registrados</p>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-card w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in slide-in-from-bottom duration-300 m-0 sm:m-4 border border-border relative">
-
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-black text-foreground tracking-tight">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-5 pb-safe pointer-events-auto shadow-2xl animate-slide-in-bottom border border-slate-200 relative z-10 sm:m-4">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold font-sans text-slate-900">
                 {editingItem ? 'Editar' : 'Nuevo'} {modalType === TransactionType.INCOME ? 'Ingreso' : 'Gasto'}
               </h3>
-              <Button onClick={() => setIsModalOpen(false)} variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-secondary">
-                <X size={20} />
+              <Button onClick={() => setIsModalOpen(false)} variant="ghost" size="icon" className="w-9 h-9 rounded-lg">
+                <X size={18} />
               </Button>
             </div>
 
-            <form onSubmit={handleSaveItem} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Descripción</label>
-                <Input
-                  type="text"
-                  value={desc}
-                  onChange={e => setDesc(e.target.value)}
-                  placeholder="Ej. Netflix"
-                  autoFocus
-                  className="h-14 text-lg font-semibold bg-secondary/50 border-transparent focus:border-primary/50"
-                />
+            <form onSubmit={handleSaveItem} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 ml-0.5">Descripcion</label>
+                <Input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ej. Netflix" autoFocus className="h-12 bg-slate-50 border-slate-200" />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Monto Mensual</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 ml-0.5">Monto Mensual</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{currency === 'EUR' ? '€' : '$'}</span>
-
-                  <Input
-                    type="number"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="pl-8 h-14 text-lg font-bold bg-secondary/50 border-transparent focus:border-primary/50"
-                    inputMode="decimal"
-                  />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">{currency === 'EUR' ? '\u20AC' : '$'}</span>
+                  <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" className="pl-8 h-12 bg-slate-50 border-slate-200" inputMode="decimal" />
                 </div>
               </div>
 
-              {/* Category Selector */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Tag size={14} className="text-muted-foreground" />
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Categoría (opcional)</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Tag size={12} className="text-slate-500" />
+                  <span className="text-xs font-medium text-slate-500">Categoria (opcional)</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {(modalType === TransactionType.EXPENSE ? categories : INCOME_CATEGORIES).map(cat => {
                     const catColors = CATEGORY_COLORS[cat] || CATEGORY_COLORS['Otros'];
                     const isSelected = category === cat;
                     return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setCategory(isSelected ? '' : cat)}
-                        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${isSelected
-                          ? `${catColors.bg} ${catColors.text} ${catColors.border} ring-2 ring-offset-1 ring-offset-background ring-primary`
-                          : 'bg-secondary text-muted-foreground border-transparent hover:bg-secondary/80'}`}
-                      >
+                      <button key={cat} type="button" onClick={() => setCategory(isSelected ? '' : cat)}
+                        className={cn(
+                          "px-3.5 py-2.5 rounded-lg text-[11px] font-medium border transition-all min-h-[44px] flex items-center",
+                          isSelected
+                            ? `${catColors.bg} ${catColors.text} ${catColors.border} ring-1 ring-blue-300`
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                        )}>
                         {cat}
                       </button>
                     );
@@ -328,22 +269,19 @@ const Planning: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 space-y-3">
-                <Button
-                  type="submit"
-                  className={`w-full h-14 text-lg font-bold ${modalType === TransactionType.INCOME ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'}`}
-                >
+              <div className="pt-2 space-y-2.5">
+                <Button type="submit" className={cn(
+                  "w-full h-12 font-semibold",
+                  modalType === TransactionType.INCOME
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/25'
+                    : 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/25'
+                )}>
                   Guardar
                 </Button>
-
                 {editingItem && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { deleteRecurringItem(editingItem.id); setIsModalOpen(false); }}
-                    className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  >
-                    <Trash2 size={16} className="mr-2" /> Eliminar Elemento
+                  <Button type="button" variant="ghost" onClick={() => { deleteRecurringItem(editingItem.id); setIsModalOpen(false); }}
+                    className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <Trash2 size={14} className="mr-2" /> Eliminar
                   </Button>
                 )}
               </div>

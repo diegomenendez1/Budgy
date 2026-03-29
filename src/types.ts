@@ -69,15 +69,19 @@ export interface Cycle extends BaseEntity {
 export interface CycleMetrics {
   daysPassed: number;
   daysTotal: number;
+  daysLeft: number;
   progressPercentage: number;
   totalAvailable: number;
-  remainingBudget: number;
+  spendableBudget: number; // totalAvailable - savingsGoal
+  remainingBudget: number; // spendableBudget - spentThisCycle
   spentThisCycle: number;
   spentPace: number; // Spend excluding exceptional items
-  idealDailyBudget: number;
+  exceptionalSpent: number; // Only exceptional expenses
+  idealDailyBudget: number; // Based on paceBudget (spendable - exceptional) / daysTotal
   currentSurplus: number; // + or - based on ideal pace
-  isOverspending: boolean;
-  suggestedDailyBudget: number | null; // If overspending, how much to spend to catch up
+  isOverspending: boolean; // pace-based (regular spending exceeds ideal pace)
+  isBudgetExceeded: boolean; // absolute (total spending exceeds spendable budget)
+  suggestedDailyBudget: number | null; // remainingBudget / daysLeft — always shown when daysLeft > 0
 }
 
 export interface CycleHistoryItem {

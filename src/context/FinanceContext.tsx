@@ -11,6 +11,23 @@ import { useCycleManager } from '../hooks/useCycleManager';
 
 const FinanceContext = createContext<FinancialContextType | undefined>(undefined);
 
+const filterTransactionsByDateRange = (
+  txs: Transaction[],
+  startDate: string,
+  endDate: string
+): Transaction[] => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  return txs.filter(t => {
+    const tDate = new Date(t.date);
+    // Normalize to local midnight to handle date-only strings parsed as UTC
+    tDate.setHours(0, 0, 0, 0);
+    return tDate >= start && tDate <= end;
+  });
+};
+
 const DEFAULT_CATEGORIES = ["Comida", "Transporte", "Ocio", "Salud", "Compras", "Otros"];
 
 export const useFinance = () => {
@@ -43,56 +60,45 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // --- Settings Actions ---
   // (In a full refactor, this would be useFinanceSettings hook)
+  const settingsId = user?.id || 'local-user';
+
+  const updateSettings = async (fields: Record<string, unknown>) => {
+    const exists = await db.userSettings.get(settingsId);
+    if (exists) {
+      await db.userSettings.update(settingsId, { ...fields, updated_at: new Date().toISOString() });
+    } else {
+      await db.userSettings.put({
+        id: settingsId,
+        owner_id: settingsId,
+        savings_goal: 0,
+        custom_categories: [],
+        currency: 'USD',
+        ...fields,
+        updated_at: new Date().toISOString()
+      });
+    }
+  };
+
   const setSavingsGoal = async (amount: number) => {
-    await db.userSettings.put({
-      id: user?.id || 'local-user',
-      owner_id: user?.id || 'local-user',
-      savings_goal: amount,
-      custom_categories: customCategories,
-      currency: currency,
-      updated_at: new Date().toISOString()
-    });
+    await updateSettings({ savings_goal: amount });
   };
 
   const setCurrency = async (curr: string) => {
-    await db.userSettings.put({
-      id: user?.id || 'local-user',
-      owner_id: user?.id || 'local-user',
-      savings_goal: savingsGoal,
-      custom_categories: customCategories,
-      currency: curr,
-      openai_api_key: apiKey,
-      updated_at: new Date().toISOString()
-    });
+    await updateSettings({ currency: curr });
   };
 
   const setApiKey = async (key: string) => {
-    await db.userSettings.put({
-      id: user?.id || 'local-user',
-      owner_id: user?.id || 'local-user',
-      savings_goal: savingsGoal,
-      custom_categories: customCategories,
-      currency: currency,
-      openai_api_key: key,
-      updated_at: new Date().toISOString()
-    });
+    await updateSettings({ openai_api_key: key });
   };
 
   const addCategory = async (category: string) => {
     const trimmed = category.trim();
     if (!trimmed) return;
-    // Optimized check
-    const allCategories = new Set([...DEFAULT_CATEGORIES, ...customCategories]);
+    const current = await db.userSettings.get(settingsId);
+    const existing = current?.custom_categories || [];
+    const allCategories = new Set([...DEFAULT_CATEGORIES, ...existing]);
     if (!allCategories.has(trimmed)) {
-      const newCustomCategories = [...customCategories, trimmed];
-      await db.userSettings.put({
-        id: user?.id || 'local-user',
-        owner_id: user?.id || 'local-user',
-        savings_goal: savingsGoal,
-        custom_categories: newCustomCategories,
-        currency: currency,
-        updated_at: new Date().toISOString()
-      });
+      await updateSettings({ custom_categories: [...existing, trimmed] });
     }
   };
 
@@ -110,35 +116,29 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const totalFixedExpenses = recurringItems
     .filter(i => i.type === TransactionType.EXPENSE)
     .filter(item => {
-      // Logic for active installment filtering
       if (!item.isInstallment) return true;
       if (!item.startDate || !item.totalInstallments) return true;
 
+      // Normalize to local date parts to avoid UTC month-boundary shifts
       const start = new Date(item.startDate);
+      start.setHours(0, 0, 0, 0);
       const now = new Date();
-      // Month difference
+      now.setHours(0, 0, 0, 0);
       const monthsPassed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
       return monthsPassed >= 0 && monthsPassed < item.totalInstallments;
     })
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const totalDisposableIncome = totalFixedIncome - totalFixedExpenses - savingsGoal;
-
   // --- Active Cycle Logic ---
   const activeCycle = useMemo(() => cycles.find(c => c.isActive) || null, [cycles]);
 
+  // Use active cycle's snapshot when available, global setting for planning only
+  const effectiveSavingsGoal = activeCycle ? activeCycle.savingsGoal : savingsGoal;
+  const totalDisposableIncome = totalFixedIncome - totalFixedExpenses - effectiveSavingsGoal;
+
   const activeCycleTransactions = useMemo(() => {
     if (!activeCycle) return [];
-    const start = new Date(activeCycle.startDate);
-    const end = new Date(activeCycle.endDate);
-    // Ensure full day coverage
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-
-    return transactions.filter(t => {
-      const tDate = new Date(t.date);
-      return tDate >= start && tDate <= end;
-    });
+    return filterTransactionsByDateRange(transactions, activeCycle.startDate, activeCycle.endDate);
   }, [activeCycle, transactions]);
 
   const cycleMetrics: CycleMetrics = useMemo(() => {
@@ -147,7 +147,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const weeklyBreakdown = useMemo(() => {
     return calculateWeeklyBreakdown(activeCycle || null, activeCycleTransactions);
-  }, [activeCycle, activeCycleTransactions, cycleMetrics]);
+  }, [activeCycle, activeCycleTransactions]);
 
   const currentWeekStatus = weeklyBreakdown.find(w => w.isCurrent) || null;
 
@@ -157,7 +157,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       .filter(item => item.isInstallment && item.startDate && item.totalInstallments)
       .map(item => {
         const start = new Date(item.startDate!);
+        start.setHours(0, 0, 0, 0);
         const now = new Date();
+        now.setHours(0, 0, 0, 0);
         const monthsPassed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
         if (monthsPassed >= 0 && monthsPassed < item.totalInstallments!) {
           return {
@@ -175,32 +177,37 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const transferSavingsToBudget = async () => {
     if (!activeCycle) return;
-    const amountToTransfer = activeCycle.savingsGoal;
-    if (amountToTransfer <= 0) return;
+    if (activeCycle.savingsGoal <= 0) return;
 
-    await db.cycles.put({
-      ...activeCycle,
-      initialBudget: activeCycle.initialBudget + amountToTransfer,
-      savingsGoal: 0,
-      updated_at: new Date().toISOString()
+    // Atomic: read current DB state to prevent double-tap inflation
+    await db.transaction('rw', db.cycles, async () => {
+      const current = await db.cycles.get(activeCycle.id);
+      if (!current || current.savingsGoal <= 0) return;
+
+      await db.cycles.update(activeCycle.id, {
+        savingsGoal: 0,
+        updated_at: new Date().toISOString()
+      });
     });
   };
 
-  const cycleHistory: CycleHistoryItem[] = cycles
+  const cycleHistory: CycleHistoryItem[] = useMemo(() => cycles
     .filter(c => !c.isActive)
     .map(c => {
-      const cTransactions = transactions.filter(t => {
-        const d = new Date(t.date);
-        return d >= new Date(c.startDate) && d <= new Date(c.endDate) && t.type === TransactionType.EXPENSE;
-      });
-      const spent = cTransactions.reduce((acc, t) => acc + t.amount, 0);
+      const cTransactions = filterTransactionsByDateRange(transactions, c.startDate, c.endDate);
+      const spent = cTransactions
+        .filter(t => t.type === TransactionType.EXPENSE)
+        .reduce((acc, t) => acc + t.amount, 0);
+      const income = cTransactions
+        .filter(t => t.type === TransactionType.INCOME)
+        .reduce((acc, t) => acc + t.amount, 0);
       return {
         id: c.id,
         endDate: c.endDate,
         savingsGoal: c.savingsGoal,
-        achievedSurplus: c.initialBudget - spent
+        achievedSurplus: (c.initialBudget + income) - spent - c.savingsGoal
       };
-    });
+    }), [cycles, transactions]);
 
   const wipeAllUserData = async () => {
     if (!confirm("Are you sure? This will delete all local data.")) return;
@@ -231,6 +238,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const rangeTransactions = transactions.filter(t => {
       const tDate = new Date(t.date);
+      tDate.setHours(0, 0, 0, 0);
       return tDate >= startDate && tDate <= endDate;
     });
 
