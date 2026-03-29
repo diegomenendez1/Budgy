@@ -70,7 +70,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 <button
                                     key={c}
                                     onClick={() => setCurrency(c)}
-                                    className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${currency === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
+                                    className={`py-3 min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-wider transition-all border tap-transparent ${currency === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
                                 >
                                     {c}
                                 </button>

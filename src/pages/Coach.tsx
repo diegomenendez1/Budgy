@@ -128,7 +128,7 @@ export const CoachPage: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100dvh-80px-var(--sab,0px))] relative overflow-hidden">
+        <div className="flex flex-col h-[calc(100dvh-6rem-var(--sat,0px)-var(--sab,0px))] relative overflow-hidden">
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-xl py-4 px-4 flex items-center justify-between z-20 shrink-0 border-b border-slate-200">
                 <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export const CoachPage: React.FC = () => {
             </header>
 
             {/* Chat Area */}
-            <main className="flex-1 overflow-y-auto px-4 py-6 space-y-4 z-10 no-scrollbar pb-32">
+            <main className="flex-1 overflow-y-auto px-3 py-4 space-y-3 z-10 no-scrollbar pb-40">
                 {messages.length === 1 && (
                     <div className="flex flex-col items-center justify-center py-10 opacity-20">
                         <BrainCircuit size={32} className="text-blue-300 mb-2" />
@@ -224,14 +224,14 @@ export const CoachPage: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <div className="absolute bottom-0 left-0 w-full p-4 z-20 pointer-events-none">
+            <div className="absolute bottom-0 left-0 w-full p-3 z-20 pointer-events-none">
                 <div className="max-w-xl mx-auto pointer-events-auto">
                     {/* Suggestions */}
                     {messages.length === 1 && !isFocused && !inputText && (
-                        <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar justify-center">
+                        <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar px-1">
                             {QUICK_ACTIONS.map((action, i) => (
                                 <button key={i} onClick={() => handleSend(action.text)}
-                                    className="whitespace-nowrap bg-white border border-slate-200 text-slate-700 text-[10px] font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform hover:bg-slate-50">
+                                    className="whitespace-nowrap bg-white border border-slate-200 text-slate-700 text-xs font-medium px-3.5 py-2.5 min-h-[40px] rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform hover:bg-slate-50 tap-transparent">
                                     {action.icon} {action.text}
                                 </button>
                             ))}
@@ -257,23 +257,23 @@ export const CoachPage: React.FC = () => {
                             disabled={isLoading}
                         />
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                             <button onMouseDown={startRecording} onMouseUp={stopRecording} onMouseLeave={stopRecording}
                                 onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
                                 onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
                                 className={cn(
-                                    "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+                                    "w-11 h-11 rounded-xl flex items-center justify-center transition-all tap-transparent",
                                     isRecording ? "bg-red-500 text-white" : "text-slate-400 hover:bg-slate-100"
                                 )}>
-                                {isRecording ? <Square size={12} fill="currentColor" /> : <Mic size={15} />}
+                                {isRecording ? <Square size={14} fill="currentColor" /> : <Mic size={18} />}
                             </button>
                             <button onClick={() => handleSend(inputText)}
                                 disabled={(!inputText.trim() && !isRecording) || isLoading}
                                 className={cn(
-                                    "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+                                    "w-11 h-11 rounded-xl flex items-center justify-center transition-all tap-transparent",
                                     inputText.trim() || isLoading ? "bg-blue-600 text-white" : "opacity-20"
                                 )}>
-                                {isLoading ? <RefreshCw size={14} className="animate-spin" /> : <Send size={15} />}
+                                {isLoading ? <RefreshCw size={16} className="animate-spin" /> : <Send size={18} />}
                             </button>
                         </div>
                     </div>

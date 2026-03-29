@@ -62,9 +62,9 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                 >
                                     <div
                                         onClick={() => toggleTxExpand(t.id)}
-                                        className="p-3.5 flex items-center justify-between active:bg-slate-100 transition-colors cursor-pointer"
+                                        className="p-3.5 flex items-center justify-between gap-3 active:bg-slate-100 transition-colors cursor-pointer tap-transparent"
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
                                             <div className={cn(
                                                 "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border",
                                                 isIncome
@@ -73,8 +73,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                             )}>
                                                 {isIncome ? <ArrowUpRight size={16} /> : getCategoryIcon(t.category)}
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-slate-900 text-sm truncate max-w-[160px]">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-medium text-slate-900 text-sm truncate">
                                                     {t.description || 'Sin descripcion'}
                                                 </p>
                                                 <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -88,7 +88,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                             </div>
                                         </div>
                                         <span className={cn(
-                                            "font-semibold text-sm whitespace-nowrap tabular-nums",
+                                            "font-semibold text-sm whitespace-nowrap tabular-nums shrink-0",
                                             isIncome ? 'text-emerald-700' : 'text-slate-900'
                                         )}>
                                             {formatCurrency(isIncome ? t.amount : -t.amount, currency)}
@@ -96,12 +96,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                     </div>
 
                                     {isExpanded && (
-                                        <div className="bg-slate-50 px-3.5 py-2 flex justify-end gap-2 border-t border-slate-200 animate-in fade-in duration-150">
+                                        <div className="bg-slate-50 px-3 py-2 flex justify-end gap-2 border-t border-slate-200 animate-in fade-in duration-150">
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
-                                                className="h-11 px-4 text-xs"
+                                                className="h-11 px-3 text-xs tap-transparent flex-1 max-w-[140px]"
                                             >
                                                 <Edit3 size={13} className="mr-1.5" /> Editar
                                             </Button>
@@ -109,7 +109,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                                 size="sm"
                                                 variant="destructive"
                                                 onClick={(e) => { e.stopPropagation(); confirmDelete(t.id); }}
-                                                className="h-11 px-4 text-xs"
+                                                className="h-11 px-3 text-xs tap-transparent flex-1 max-w-[140px]"
                                             >
                                                 <Trash2 size={13} className="mr-1.5" /> Eliminar
                                             </Button>

@@ -159,8 +159,8 @@ const Insights: React.FC = () => {
                                     {trendPercentage > 0 ? 'Mas gasto' : 'Menos gasto'}
                                 </span>
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-1.5 max-w-[220px]">
-                                Promedio diario: {formatCurrency(dailyAverage, currency)} vs {formatCurrency(previousCycleMetrics.dailyAvg, currency)}
+                            <p className="text-[11px] text-slate-500 mt-1.5">
+                                Promedio: {formatCurrency(dailyAverage, currency)} vs {formatCurrency(previousCycleMetrics.dailyAvg, currency)}
                             </p>
                         </div>
                         <div className={cn("p-2.5 rounded-xl", trendPercentage > 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700')}>
@@ -179,7 +179,7 @@ const Insights: React.FC = () => {
                         </div>
                         <span className="text-[11px] text-slate-500 font-medium">Velocidad</span>
                     </div>
-                    <p className={cn("text-3xl font-bold font-sans tracking-tight tabular-nums", getVelocityColor(spendingVelocity))}>
+                    <p className={cn("text-2xl font-bold font-sans tracking-tight tabular-nums", getVelocityColor(spendingVelocity))}>
                         {spendingVelocity.toFixed(1)}x
                     </p>
                     <div className="mt-3 space-y-1">
@@ -364,17 +364,15 @@ const Insights: React.FC = () => {
                 </div>
                 <div className="divide-y divide-slate-100">
                     {topTransactions.map((t) => (
-                        <div key={t.id} className="px-5 py-3.5 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-red-50 text-red-600 w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border border-red-100">
-                                    <TrendingDown size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="font-medium text-sm text-slate-900 truncate max-w-[160px]">{t.description}</p>
-                                    <p className="text-[10px] text-slate-500 mt-0.5">{t.category}</p>
-                                </div>
+                        <div key={t.id} className="px-4 py-3.5 flex items-center gap-3 hover:bg-slate-50 transition-colors">
+                            <div className="bg-red-50 text-red-600 w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border border-red-100">
+                                <TrendingDown size={16} />
                             </div>
-                            <span className="font-semibold text-slate-900 text-sm tabular-nums">{formatCurrency(-t.amount, currency)}</span>
+                            <div className="min-w-0 flex-1">
+                                <p className="font-medium text-sm text-slate-900 truncate">{t.description}</p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">{t.category}</p>
+                            </div>
+                            <span className="font-semibold text-slate-900 text-sm tabular-nums shrink-0">{formatCurrency(-t.amount, currency)}</span>
                         </div>
                     ))}
                     {topTransactions.length === 0 && (

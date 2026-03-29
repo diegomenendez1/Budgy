@@ -93,7 +93,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                                 setAmount(val);
                             }
                         }}
-                        className={`w-full text-4xl font-black border-b-2 border-border focus:border-primary focus:outline-none py-2 pl-6 bg-transparent transition-colors placeholder:text-muted-foreground/20 ${txType === TransactionType.INCOME ? 'text-green-600' : 'text-foreground'}`}
+                        className={`w-full text-3xl font-black border-b-2 border-border focus:border-primary focus:outline-none py-2 pl-7 bg-transparent transition-colors placeholder:text-muted-foreground/20 ${txType === TransactionType.INCOME ? 'text-green-600' : 'text-foreground'}`}
                         placeholder="0"
                         autoFocus
                         inputMode="decimal"
@@ -134,24 +134,24 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                                     key={c}
                                     type="button"
                                     onClick={() => setCategory(c)}
-                                    className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${category === c ? 'bg-foreground text-background shadow-md transform scale-105' : 'bg-secondary text-muted-foreground hover:bg-muted border border-border'}`}
+                                    className={`px-3.5 py-2.5 min-h-[44px] rounded-full text-sm font-bold transition-all tap-transparent ${category === c ? 'bg-foreground text-background shadow-md transform scale-105' : 'bg-secondary text-muted-foreground hover:bg-muted border border-border'}`}
                                 >
                                     {c}
                                 </button>
                             ))}
 
                             {isAddingCategory && (
-                                <div className="flex items-center bg-secondary rounded-full px-2 pl-3 py-1 border border-primary">
+                                <div className="flex items-center bg-secondary rounded-full px-3 py-1.5 border border-primary min-h-[44px]">
                                     <input
                                         value={newCategoryName}
                                         onChange={(e) => setNewCategoryName(e.target.value)}
                                         onBlur={handleAddNewCategory}
                                         onKeyDown={(e) => e.key === 'Enter' && handleAddNewCategory()}
-                                        className="bg-transparent border-none focus:outline-none text-sm font-bold text-foreground w-24"
+                                        className="bg-transparent border-none focus:outline-none text-sm font-bold text-foreground w-28"
                                         placeholder="Nueva..."
                                         autoFocus
                                     />
-                                    <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-primary text-primary-foreground p-1 rounded-full ml-1"><Check size={12} /></button>
+                                    <button onMouseDown={handleAddNewCategory} aria-label="Confirmar nueva categoría" className="bg-primary text-primary-foreground p-1.5 rounded-full ml-1 tap-transparent"><Check size={14} /></button>
                                 </div>
                             )}
                         </div>
@@ -210,7 +210,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
             <button
                 type="submit"
-                className={`w-full font-black uppercase tracking-widest py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all text-sm mt-2 ${txType === TransactionType.INCOME ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-foreground text-background shadow-foreground/10'}`}
+                className={`w-full font-bold uppercase tracking-wider py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all text-sm mt-2 min-h-[52px] tap-transparent ${txType === TransactionType.INCOME ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-foreground text-background shadow-foreground/10'}`}
             >
                 {txType === TransactionType.INCOME ? 'Registrar Ingreso' : 'Confirmar Gasto'}
             </button>

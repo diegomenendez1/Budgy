@@ -28,7 +28,7 @@ const MainAppLayout: React.FC = () => {
     return (
         <div className="min-h-dvh bg-background font-sans overflow-x-hidden">
             <main className="mx-auto w-full max-w-lg min-h-dvh relative">
-                <div className="pt-safe pb-28 px-5 min-h-dvh">
+                <div className="pt-safe pb-24 px-4 min-h-dvh">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentTab}

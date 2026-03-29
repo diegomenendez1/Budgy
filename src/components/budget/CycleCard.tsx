@@ -48,7 +48,7 @@ const CycleCard: React.FC<CycleCardProps> = ({
                     <button
                         onClick={onOpenCycleModal}
                         aria-label="Nuevo ciclo"
-                        className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors tap-transparent"
                     >
                         <RefreshCcw size={15} />
                     </button>
@@ -57,7 +57,7 @@ const CycleCard: React.FC<CycleCardProps> = ({
                 {/* Main Balance */}
                 <div className="text-center mb-6">
                     <p className={cn(
-                        "text-5xl font-bold tracking-tight tabular-nums",
+                        "text-[2rem] font-bold tracking-tight tabular-nums",
                         isOverBudget ? "text-red-600" : "text-slate-900"
                     )}>
                         {formatCurrency(cycleMetrics.remainingBudget, currency)}

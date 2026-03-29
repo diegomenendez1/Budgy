@@ -117,6 +117,17 @@
   .pb-safe-nav {
     padding-bottom: calc(var(--sab) + 5rem);
   }
+
+  /* Prevent text size adjustment on orientation change */
+  .text-size-adjust-none {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Tap highlight removal for touch targets */
+  .tap-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 @keyframes aurora {

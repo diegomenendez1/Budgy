@@ -58,7 +58,8 @@ const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, onCreateCycle,
     return (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
-            <div className="bg-card w-full max-w-sm rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 pb-safe pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4 relative z-10 border border-border">
+            <div className="bg-card w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-6 pointer-events-auto shadow-2xl transform transition-transform animate-in m-0 sm:m-4 relative z-10 border border-border overflow-y-auto max-h-[90vh]"
+                 style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.5rem)' }}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-black text-foreground uppercase tracking-tight italic leading-none">Nuevo Ciclo</h3>
                     <button onClick={onClose} aria-label="Cerrar modal" className="bg-secondary p-2 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">

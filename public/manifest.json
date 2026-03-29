@@ -1,0 +1,17 @@
+{
+  "name": "Budgy",
+  "short_name": "Budgy",
+  "description": "Tu asistente financiero personal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFB",
+  "theme_color": "#F8FAFB",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

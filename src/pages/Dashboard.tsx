@@ -66,7 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-slate-900">Tu espacio esta listo</h2>
-          <p className="text-slate-500 text-sm max-w-[260px] mx-auto leading-relaxed">
+          <p className="text-slate-500 text-sm mx-auto leading-relaxed px-4">
             Registra tu primer movimiento para comenzar a trackear.
           </p>
         </div>
@@ -101,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <div className="relative">
           <p className="text-xs text-slate-500 font-medium mb-1">Saldo Disponible</p>
           <p className={cn(
-            "text-4xl font-bold tracking-tight tabular-nums",
+            "text-3xl font-bold tracking-tight tabular-nums",
             balance < 0
               ? "text-red-600"
               : "text-slate-900"
@@ -206,31 +206,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             recentTransactions.map((t) => (
               <div
                 key={t.id}
-                className="bg-white border border-slate-200/60 rounded-xl p-3.5 flex justify-between items-center hover:bg-slate-50 transition-colors"
+                className="bg-white border border-slate-200/60 rounded-xl p-3.5 flex items-center gap-3 hover:bg-slate-50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center",
-                    t.type === TransactionType.EXPENSE
-                      ? "bg-red-50 text-red-600"
-                      : "bg-emerald-50 text-emerald-700"
-                  )}>
-                    {t.type === TransactionType.EXPENSE
-                      ? <ArrowDownRight size={16} />
-                      : <ArrowUpRight size={16} />
-                    }
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-slate-900">
-                      {t.description || t.category}
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      {new Date(t.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                    </p>
-                  </div>
+                <div className={cn(
+                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                  t.type === TransactionType.EXPENSE
+                    ? "bg-red-50 text-red-600"
+                    : "bg-emerald-50 text-emerald-700"
+                )}>
+                  {t.type === TransactionType.EXPENSE
+                    ? <ArrowDownRight size={16} />
+                    : <ArrowUpRight size={16} />
+                  }
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm text-slate-900 truncate">
+                    {t.description || t.category}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {new Date(t.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                  </p>
                 </div>
                 <span className={cn(
-                  "font-semibold text-sm tabular-nums",
+                  "font-semibold text-sm tabular-nums shrink-0",
                   t.type === TransactionType.EXPENSE ? "text-red-600" : "text-emerald-700"
                 )}>
                   {t.type === TransactionType.EXPENSE ? '-' : '+'}{formatCurrency(t.amount, currency)}
@@ -249,7 +247,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex flex-col items-start gap-3 hover:bg-blue-100/60 transition-all active:scale-[0.97]"
+          className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex flex-col items-start gap-3 hover:bg-blue-100/60 transition-all active:scale-[0.97] tap-transparent min-h-[88px]"
         >
           <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
             <Plus className="w-5 h-5" />
@@ -259,7 +257,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
         <button
           onClick={() => onNavigate('insights')}
-          className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-start gap-3 hover:bg-slate-50 transition-all active:scale-[0.97]"
+          className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-start gap-3 hover:bg-slate-50 transition-all active:scale-[0.97] tap-transparent min-h-[88px]"
         >
           <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
             <TrendingUp className="w-5 h-5" />

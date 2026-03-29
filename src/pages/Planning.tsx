@@ -221,7 +221,8 @@ const Planning: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-white w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-5 pb-safe pointer-events-auto shadow-2xl animate-slide-in-bottom border border-slate-200 relative z-10 sm:m-4">
+          <div className="bg-white w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-5 pointer-events-auto shadow-2xl animate-slide-in-bottom border border-slate-200 relative z-10 sm:m-4 max-h-[90vh] overflow-y-auto"
+               style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.25rem)' }}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold font-sans text-slate-900">
                 {editingItem ? 'Editar' : 'Nuevo'} {modalType === TransactionType.INCOME ? 'Ingreso' : 'Gasto'}

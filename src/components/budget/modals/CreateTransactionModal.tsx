@@ -49,7 +49,8 @@ const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
     return (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-md animate-in fade-in" onClick={onClose} />
-            <div className="bg-card w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 pb-safe sm:pb-8 shadow-2xl relative z-10 overflow-hidden animate-in slide-in-from-bottom border border-border">
+            <div className="bg-card w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 overflow-y-auto max-h-[90vh] animate-in slide-in-from-bottom border border-border"
+                 style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.5rem)' }}>
                 <div className="flex justify-between items-center mb-8">
                     <h3 className="text-xl font-black text-foreground uppercase tracking-tight italic leading-none">Nuevo Gasto</h3>
                     <button onClick={onClose} aria-label="Cerrar modal" className="bg-secondary p-2 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
@@ -86,7 +87,7 @@ const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                className={`w-full text-4xl font-black border-b-2 border-border focus:border-primary focus:outline-none py-4 pl-6 bg-transparent transition-colors placeholder:text-muted-foreground/10 ${type === TransactionType.INCOME ? 'text-green-600' : 'text-foreground'}`}
+                                className={`w-full text-3xl font-black border-b-2 border-border focus:border-primary focus:outline-none py-3 pl-7 bg-transparent transition-colors placeholder:text-muted-foreground/10 ${type === TransactionType.INCOME ? 'text-green-600' : 'text-foreground'}`}
                                 placeholder="0"
                                 inputMode="decimal"
                                 autoFocus
@@ -115,7 +116,7 @@ const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
                                             key={c}
                                             type="button"
                                             onClick={() => setCategory(c)}
-                                            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${category === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
+                                            className={`px-3.5 py-2.5 min-h-[40px] rounded-full text-[11px] font-bold uppercase tracking-wider transition-all border tap-transparent ${category === c ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary border-transparent text-muted-foreground hover:bg-muted'}`}
                                         >
                                             {c}
                                         </button>

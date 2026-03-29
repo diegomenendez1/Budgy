@@ -94,14 +94,14 @@ const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) =>
     };
 
     return (
-        <div className="fixed bottom-[calc(6rem+var(--sab,0px)+16px)] right-5 z-40 pointer-events-none">
+        <div className="fixed bottom-[calc(5.5rem+var(--sab,0px)+8px)] right-4 z-40 pointer-events-none">
             <div className="mx-auto max-w-lg pointer-events-none relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     aria-label="Agregar transaccion"
                     className={cn(
-                        "absolute right-0 bottom-0 pointer-events-auto",
-                        "w-13 h-13 rounded-xl shadow-lg flex items-center justify-center transition-all duration-200",
+                        "absolute right-0 bottom-0 pointer-events-auto tap-transparent",
+                        "w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center transition-all duration-200",
                         isOpen
                             ? "bg-slate-900 text-white rotate-45 scale-90"
                             : "bg-gradient-to-r from-[#0052FF] to-[#4D7CFF] text-white hover:scale-105 active:scale-95 shadow-lg shadow-[#0052FF]/30"
@@ -118,7 +118,8 @@ const FloatingAddButton: React.FC<{ currentTab?: string }> = ({ currentTab }) =>
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
-                        className="bg-white text-card-foreground w-full max-w-md p-5 shadow-xl relative z-10 overflow-y-auto max-h-[85vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl pb-safe sm:pb-5 sm:m-4 animate-slide-in-bottom"
+                        className="bg-white text-card-foreground w-full max-w-md p-5 shadow-xl relative z-10 overflow-y-auto max-h-[90vh] border border-slate-200 rounded-t-2xl sm:rounded-2xl sm:pb-5 sm:m-4 animate-slide-in-bottom"
+                        style={{ paddingBottom: 'calc(var(--sab, 0px) + 1.25rem)' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
